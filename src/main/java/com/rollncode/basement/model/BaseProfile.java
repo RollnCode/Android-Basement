@@ -110,7 +110,9 @@ public abstract class BaseProfile {
     @WorkerThread
     @CallSuper
     public void setPushToken(String pushToken) {
+        mPushTokenSent = pushToken != null && pushToken.equals(mPushToken);
         mPushToken = pushToken;
+
         commit();
     }
 

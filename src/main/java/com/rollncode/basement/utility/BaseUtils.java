@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -488,6 +489,19 @@ public abstract class BaseUtils {
         return null;
     }
 
+    @Nullable
+    public static <M extends JsonEntity> M optModel(@Nullable String raw, @NonNull Class<M> cls) {
+        if (!TextUtils.isEmpty(raw)) {
+            try {
+                return toModel(new JSONObject(raw), cls);
+
+            } catch (JSONException e) {
+                LOG.toLog(e);
+            }
+        }
+        return null;
+    }
+
     public static <MODEL extends JsonEntity> void append(@NonNull JSONObject object, @NonNull String key, @Nullable MODEL model) throws JSONException {
         object.put(key, model == null ? null : model.toJson());
     }
@@ -821,6 +835,17 @@ public abstract class BaseUtils {
         for (View view : views) {
             if (view.getAlpha() != alpha) {
                 view.animate().alpha(alpha).start();
+            }
+        }
+    }
+
+    public static <T extends JsonEntity> void putSilent(@NonNull Editor editor, @NonNull String key, @Nullable T value) {
+        if (value != null) {
+            try {
+                editor.putString(key, value.toJson().toString());
+
+            } catch (JSONException e) {
+                ALog.LOG.toLog(e);
             }
         }
     }

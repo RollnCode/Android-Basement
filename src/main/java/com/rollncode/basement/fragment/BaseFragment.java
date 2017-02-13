@@ -249,8 +249,15 @@ public abstract class BaseFragment extends Fragment
     @CheckResult
     private BroadcastReceiver newInternetReceiver() {
         return new BroadcastReceiver() {
+
+            private boolean mSticky = true;
+
             @Override
             public void onReceive(Context context, Intent intent) {
+                if (mSticky) {
+                    mSticky = false;
+                    return;
+                }
                 final View view = getView();
                 if (view != null && view.getParent() != null) {
                     view.removeCallbacks(mInternetRun);

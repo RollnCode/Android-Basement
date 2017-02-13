@@ -23,7 +23,7 @@ public class ALog implements Log {
     /**
      * Default log instance: "adb logcat -s tLog"
      */
-    public static final Log LOG = new ALog("aLog");
+    public static final Log LOG = new ALog("aLog").setShowLogs(true);//TODO: remove in future
     private static final int MAX_MESSAGE_LENGTH = 3 * 1024;
 
     //BASE
@@ -85,6 +85,8 @@ public class ALog implements Log {
 
     @NonNull
     private StringBuilder toString(@NonNull StringBuilder sb, @NonNull Throwable e, boolean fullStack) {
+        e.printStackTrace();//TODO: maybe remove in future
+
         if (!BaseUtils.isEmpty(e.getMessage())) {
             sb.append(e.getMessage()).append(SharedStrings.NEW_LINE_C);
         }

@@ -11,7 +11,7 @@ import com.rollncode.basement.utility.ALog;
 
 public abstract class AsyncRequest<RESULT> extends SpiceRequest<RESULT> {
 
-    protected static final Log LOG = new ALog("requestLog");
+    protected static final Log LOG = new ALog("requestLog").setShowLogs(true);
 
     private static final DefaultRetryPolicy RETRY_POLICY = new DefaultRetryPolicy(1, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
 
