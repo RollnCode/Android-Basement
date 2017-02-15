@@ -101,19 +101,27 @@ public abstract class BaseUtils {
 
     private static final Log LOG = ALog.LOG;
 
-    public static void clear(@NonNull StringBuilder sb) {
-        sb.delete(0, sb.length());
+    @NonNull
+    public static StringBuilder clear(@NonNull StringBuilder sb) {
+        return sb.delete(0, sb.length());
     }
 
     public static boolean changeVisibility(int visibility, @NonNull View... views) {
         boolean change = false;
         for (View view : views) {
-            if (view.getVisibility() != visibility) {
-                view.setVisibility(visibility);
+            if (setVisibility(view, visibility)) {
                 change = true;
             }
         }
         return change;
+    }
+
+    public static boolean setVisibility(@NonNull View view, int visibility) {
+        if (view.getVisibility() != visibility) {
+            view.setVisibility(visibility);
+            return true;
+        }
+        return false;
     }
 
     public static boolean changeEnabled(@NonNull View view, boolean enabled) {

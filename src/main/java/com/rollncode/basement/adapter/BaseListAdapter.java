@@ -56,13 +56,18 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
     }
 
     @Override
-    public final DATA getItem(int position) {
+    public DATA getItem(int position) {
         return mData.get(position);
     }
 
     @Override
-    public long getItemId(int position) {
+    public final long getItemId(int position) {
         return position;
+    }
+
+    @NonNull
+    protected final List<DATA> getData() {
+        return mData;
     }
 
     @Override

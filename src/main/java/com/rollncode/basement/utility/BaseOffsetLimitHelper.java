@@ -48,18 +48,23 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
     public final void onScrollStateChanged(AbsListView view, int scrollState) {
     }
 
-    public final void queryAll() {
-        if (mWaitForResponse) {
-            return;
-        }
-        if (mOffset > 0 && executeRequest(0, mOffset, mRequestListener)) {
+    public final boolean queryAll() {
+        return queryAll(false);
+    }
+
+    public final boolean queryAll(boolean force) {
+        if (!mWaitForResponse
+                && (force || mOffset > 0)
+                && executeRequest(0, Math.max(mLimit, mOffset), mRequestListener)) {
             mWaitForResponse = true;
 
             mOffset = 0;
             mAttemptCount = 0;
 
             setRefreshing(true);
+            return true;
         }
+        return false;
     }
 
     public final boolean reset() {
