@@ -13,6 +13,8 @@ public interface Log {
 
     void toLog(@NonNull Throwable e);
 
+    void toLogFullStack(@NonNull Throwable e);
+
     @NonNull
     StringBuilder toString(@NonNull Throwable e, boolean fullStack);
 }

@@ -76,7 +76,6 @@ dependencies {
         transitive = true;
     }
     compile "com.android.support:appcompat-v7:$supportVersion"
-    compile "com.android.support:design:$supportVersion"
 
     compile "com.octo.android.robospice:robospice:1.4.14"
     compile "com.github.bumptech.glide:glide:3.7.0"

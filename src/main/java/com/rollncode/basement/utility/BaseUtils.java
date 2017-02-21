@@ -88,6 +88,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -228,7 +229,17 @@ public abstract class BaseUtils {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static <T> boolean areEquals(@Nullable T first, @Nullable T second) {
-        return first == second || first != null && first.equals(second);
+        return first == null && second == null || first != null && first.equals(second);
+    }
+
+    public static boolean areEquals(@Nullable String first, @Nullable String second) {
+        if (first == null) {
+            first = SharedStrings.EMPTY;
+        }
+        if (second == null) {
+            second = SharedStrings.EMPTY;
+        }
+        return first.equals(second);
     }
 
     @NonNull
@@ -368,8 +379,8 @@ public abstract class BaseUtils {
         return (int) sampleSize;
     }
 
-    public static boolean receiveObjects(@Nullable WeakReference<ObjectsReceiver> weakReceiver, @IdRes int code, @NonNull Object... objects) {
-        final ObjectsReceiver receiver = weakReceiver == null ? null : weakReceiver.get();
+    public static <R extends ObjectsReceiver> boolean receiveObjects(@Nullable WeakReference<R> weakReceiver, @IdRes int code, @NonNull Object... objects) {
+        final R receiver = weakReceiver == null ? null : weakReceiver.get();
         final boolean received = receiver != null;
         if (received) {
             receiver.onObjectsReceive(code, objects);
@@ -524,6 +535,16 @@ public abstract class BaseUtils {
         object.put(key, array);
     }
 
+    public static <MODEL extends JsonEntity> void append(@NonNull JSONObject target, @NonNull MODEL source) throws JSONException {
+        final JSONObject object = source.toJson();
+        String key;
+
+        for (Iterator<String> iterator = object.keys(); iterator.hasNext(); ) {
+            key = iterator.next();
+            target.put(key, object.get(key));
+        }
+    }
+
     @NonNull
     public static String[] toStrings(@NonNull JSONObject object, @NonNull String key) throws JSONException {
         final Object optArray = object.opt(key);
@@ -541,6 +562,12 @@ public abstract class BaseUtils {
 
     public static float toFloat(@NonNull JSONObject object, @NonNull String key) {
         return Float.parseFloat(object.optString(key, "0"));
+    }
+
+    @Nullable
+    public static String toString(@NonNull JSONObject object, @NonNull String key) {
+        final Object opt = object.opt(key);
+        return opt instanceof String /*&& !SharedStrings.NULL.equals(opt)*/ ? opt.toString() : null;
     }
 
     @NonNull

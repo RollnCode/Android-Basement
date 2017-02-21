@@ -34,7 +34,11 @@ public abstract class BaseARequestListener<RESULT> implements RequestListener<RE
         if (errorMessage == null) {
             errorMessage = getUnknownErrorString();
         }
+        beforeOnError(error);
         onError(error, errorMessage);
+    }
+
+    protected void beforeOnError(@NonNull Throwable error) {
     }
 
     @NonNull

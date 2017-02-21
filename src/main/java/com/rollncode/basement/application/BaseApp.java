@@ -62,7 +62,7 @@ public abstract class BaseApp extends Application
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         if (mCreateDestroy.size() == 0) {
-            workerStart();
+            startWorker();
 
             if (!(activity instanceof BaseActivity)) {//TODO:to splash
                 BaseUtils.threadSleep(50);
@@ -113,7 +113,7 @@ public abstract class BaseApp extends Application
     }
 
     @CallSuper
-    protected void workerStart() {
+    public void startWorker() {
         mHandler.sendEmptyMessage(WHAT_START);
     }
 

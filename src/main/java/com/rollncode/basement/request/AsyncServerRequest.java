@@ -57,6 +57,7 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
 
         } finally {
             if (showLog()) {
+                //noinspection ThrowFromFinallyBlock
                 LOG.toLog(">>> Q\tcode: " + getCode()
                         + "\tclass: " + getClass().getSimpleName()
                         + "\n\turl: " + url
@@ -145,7 +146,7 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
     }
 
     @NonNull
-    private String toString(@NonNull SimpleArrayMap<String, Object> parameters) throws JSONException {
+    protected final String toString(@NonNull SimpleArrayMap<String, Object> parameters) throws JSONException {
         final MediaType type = getMediaType();
         if (TYPE_JSON.equals(type)) {
             return toStringLikeJson(parameters);
@@ -226,7 +227,7 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
 
     @StringDef({RequestType.GET, RequestType.PUT, RequestType.POST, RequestType.HEAD, RequestType.DELETE})
     @Retention(RetentionPolicy.SOURCE)
-    protected @interface RequestType {
+    public @interface RequestType {
 
         String GET = "GET";
         String PUT = "PUT";

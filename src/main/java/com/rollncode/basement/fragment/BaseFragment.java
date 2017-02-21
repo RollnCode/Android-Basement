@@ -31,7 +31,6 @@ import com.rollncode.basement.interfaces.ObjectsReceiver;
 import com.rollncode.basement.utility.BaseARequestListener;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -97,12 +96,8 @@ public abstract class BaseFragment extends Fragment
     }
 
     protected final void askPermissions(boolean force) {
-        final String key = getClass().getName();
         final String[] permissions2Check = getPermissions2Check();
-        if (!force && PERMISSIONS_ASKED_BEFORE.get(key) != null) {
-            onRequiredPermissionsAnswer(Arrays.asList(permissions2Check));
-            return;
-        }
+        final String key = getClass().getName();
         final String[] permissions;
         {
             final List<String> list = new ArrayList<>(permissions2Check.length);
@@ -110,6 +105,10 @@ public abstract class BaseFragment extends Fragment
                 if (ActivityCompat.checkSelfPermission(getContext(), permission) == PackageManager.PERMISSION_DENIED) {
                     list.add(permission);
                 }
+            }
+            if (!force && PERMISSIONS_ASKED_BEFORE.get(key) != null) {
+                onRequiredPermissionsAnswer(list);
+                return;
             }
             permissions = list.toArray(new String[list.size()]);
         }
