@@ -510,6 +510,11 @@ public abstract class BaseUtils {
 
     @Nullable
     public static <M extends JsonEntity> M optModel(@Nullable String raw, @NonNull Class<M> cls) {
+        return optModel(raw, cls, null);
+    }
+
+    @Nullable
+    public static <M extends JsonEntity> M optModel(@Nullable String raw, @NonNull Class<M> cls, @Nullable M def) {
         if (!TextUtils.isEmpty(raw)) {
             try {
                 return toModel(new JSONObject(raw), cls);
@@ -518,7 +523,7 @@ public abstract class BaseUtils {
                 LOG.toLog(e);
             }
         }
-        return null;
+        return def;
     }
 
     public static <MODEL extends JsonEntity> void append(@NonNull JSONObject object, @NonNull String key, @Nullable MODEL model) throws JSONException {
@@ -699,6 +704,24 @@ public abstract class BaseUtils {
             }
         }
         return TextUtils.isEmpty(code) ? null : code.toUpperCase();
+    }
+
+    @Nullable
+    @WorkerThread
+    public static String requestIpAddress() {
+        try {
+            final URLConnection connection = new URL("https://api.ipify.org?format=json").openConnection();
+            connection.connect();
+
+            final InputStream is = connection.getInputStream();
+            final String string = toString(is, true);
+            final JSONObject object = new JSONObject(string);
+
+            return object.getString("ip");
+
+        } catch (Throwable ignore) {
+        }
+        return null;
     }
 
     public static boolean isNetworkAvailable(@NonNull ConnectivityManager manager) {

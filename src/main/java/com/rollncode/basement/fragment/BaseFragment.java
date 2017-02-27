@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.CheckResult;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -130,7 +131,7 @@ public abstract class BaseFragment extends Fragment
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public final void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_PERMISSION:
                 setRefreshing(false);
@@ -172,6 +173,12 @@ public abstract class BaseFragment extends Fragment
         } finally {
             System.gc();
         }
+    }
+
+    protected final View findViewВyId(@NonNull View v, @IdRes int id) {
+        final View view = v.findViewById(id);
+        //TODO: handle view
+        return view;
     }
 
     @CallSuper

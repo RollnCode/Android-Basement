@@ -64,6 +64,7 @@ public final class StackView extends FrameLayout {
     private final PointF mScrollingCross;
     private final PointF mLastXY;
 
+    private boolean mSwipeDisabled;
     private boolean mAnimation;
     private boolean mScrolling;
     private PointF mBorder;
@@ -131,6 +132,10 @@ public final class StackView extends FrameLayout {
         mStackViewCallback = callback;
     }
 
+    public void setSwipeDisabled(boolean swipeDisabled) {
+        mSwipeDisabled = swipeDisabled;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         Boolean handleMotionEvent = null;
@@ -183,7 +188,7 @@ public final class StackView extends FrameLayout {
 
     @Nullable
     private Boolean handleMotionEvent(@NonNull MotionEvent event) throws Exception {
-        if (mAnimation) {
+        if (mAnimation || mSwipeDisabled) {
             return null;
         }
         if (mFrontView == null) {
