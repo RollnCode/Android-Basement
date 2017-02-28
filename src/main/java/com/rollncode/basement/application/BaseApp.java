@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.util.SparseBooleanArray;
 
 import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.answers.Answers;
 import com.rollncode.basement.utility.BaseUtils;
 
 import java.lang.ref.WeakReference;
@@ -37,7 +38,7 @@ public abstract class BaseApp extends Application
     public void onCreate() {
         super.onCreate();
         {
-            Fabric.with(this, new Crashlytics());
+            Fabric.with(this, new Crashlytics(), new Answers());
         }
         mCreateDestroy = new SparseBooleanArray();
         mResumePause = new SparseBooleanArray();
@@ -62,8 +63,8 @@ public abstract class BaseApp extends Application
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         if (mCreateDestroy.size() == 0) {
             startWorker();
-
             BaseUtils.threadSleep(50);
+
             synchronized (BaseConstant.LOCK) {
                 //here app wait until WHAT_START
             }
