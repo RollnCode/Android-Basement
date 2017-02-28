@@ -56,7 +56,7 @@ public abstract class BaseFragment extends Fragment
 
     @Nullable
     @Override
-    public final View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle b) {
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle b) {
         return inflater.inflate(getLayoutResId(), container, false);
     }
 
@@ -189,11 +189,9 @@ public abstract class BaseFragment extends Fragment
         if (indicator == 0) {
             bar.setDisplayHomeAsUpEnabled(false);
             bar.setDisplayShowHomeEnabled(false);
-
         } else {
             bar.setDisplayHomeAsUpEnabled(true);
             bar.setDisplayShowHomeEnabled(true);
-
             bar.setHomeAsUpIndicator(indicator);
         }
     }

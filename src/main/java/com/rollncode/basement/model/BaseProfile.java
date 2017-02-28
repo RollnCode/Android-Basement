@@ -16,10 +16,10 @@ import com.rollncode.basement.utility.BaseUtils;
  */
 public abstract class BaseProfile {
 
-    private static final String KEY_0 = "bapr.KEY_0";
-    private static final String KEY_1 = "bapr.KEY_1";
-    private static final String KEY_2 = "bapr.KEY_2";
-    private static final String KEY_3 = "bapr.KEY_3";
+    private static final String KEY_0 = "rocobapr.KEY_0";
+    private static final String KEY_1 = "rocobapr.KEY_1";
+    private static final String KEY_2 = "rocobapr.KEY_2";
+    private static final String KEY_3 = "rocobapr.KEY_3";
 
     protected final SharedPreferences mPreferences;
 
