@@ -12,7 +12,6 @@ import android.support.annotation.NonNull;
 import android.util.SparseBooleanArray;
 
 import com.crashlytics.android.Crashlytics;
-import com.rollncode.basement.activity.BaseActivity;
 import com.rollncode.basement.utility.BaseUtils;
 
 import java.lang.ref.WeakReference;
@@ -64,11 +63,9 @@ public abstract class BaseApp extends Application
         if (mCreateDestroy.size() == 0) {
             startWorker();
 
-            if (!(activity instanceof BaseActivity)) {//TODO:to splash
-                BaseUtils.threadSleep(50);
-                synchronized (BaseConstant.LOCK) {
-                    //here app wait until WHAT_START
-                }
+            BaseUtils.threadSleep(50);
+            synchronized (BaseConstant.LOCK) {
+                //here app wait until WHAT_START
             }
         }
         mCreateDestroy.put(activity.hashCode(), true);
