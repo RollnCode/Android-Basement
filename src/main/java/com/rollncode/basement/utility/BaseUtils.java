@@ -690,17 +690,14 @@ public abstract class BaseUtils {
         }
 
         if (TextUtils.isEmpty(code) && isNetworkAvailable((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE))) {
-            InputStream is = null;
             try {
                 final URLConnection connection = new URL("http://ipinfo.io/country").openConnection();
                 connection.connect();
 
-                is = connection.getInputStream();
-                code = toString(is, false);
+                final InputStream is = connection.getInputStream();
+                code = toString(is, true);
 
             } catch (Throwable ignore) {
-            } finally {
-                BaseUtils.closeSilently(is);
             }
         }
         return TextUtils.isEmpty(code) ? null : code.toUpperCase();
