@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
-import android.graphics.Paint.Style;
 import android.net.Uri;
 import android.support.annotation.CallSuper;
 import android.support.annotation.ColorInt;
@@ -62,7 +61,6 @@ public abstract class BaseAvatarImageView extends ImageView {
 
         mPaintBackground.setColor(getBackgroundColor());
         mPaintText.setTextSize(getSymbolAvatarSize());
-        mPaintText.setStyle(Style.FILL_AND_STROKE);
         mPaintText.setTextAlign(Align.CENTER);
         mPaintText.setColor(Color.WHITE);
         mPaintTextCent = (mPaintText.descent() + mPaintText.ascent()) / 2F;
@@ -96,8 +94,8 @@ public abstract class BaseAvatarImageView extends ImageView {
         return Color.TRANSPARENT;
     }
 
-    protected int getSymbolAvatarSize() {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 36, getResources().getDisplayMetrics());
+    protected float getSymbolAvatarSize() {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 36, getResources().getDisplayMetrics());
     }
 
     @DrawableRes

