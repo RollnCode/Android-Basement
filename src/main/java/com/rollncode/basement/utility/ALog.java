@@ -23,7 +23,7 @@ public class ALog implements Log {
     /**
      * Default log instance: "adb logcat -s tLog"
      */
-    public static final ALog LOG = new ALog("aLog").setShowLogs(false);
+    public static final ALog LOG = new ALog("aLog").setShowLogs(true);
     private static final int MAX_MESSAGE_LENGTH = 3 * 1024;
 
     //BASE

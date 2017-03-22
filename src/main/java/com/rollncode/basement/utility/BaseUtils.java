@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -935,6 +936,16 @@ public abstract class BaseUtils {
             bytes[count++] = Byte.parseByte(s);
         }
         return bytes;
+    }
+
+    public static boolean isAppExists(@NonNull Context context, @NonNull String packageName) {
+        try {
+            context.getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+
+        } catch (NameNotFoundException e) {
+            return false;
+        }
     }
 
     private static final class RefreshingRunnable implements Runnable {
