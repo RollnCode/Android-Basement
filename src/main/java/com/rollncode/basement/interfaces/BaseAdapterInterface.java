@@ -20,7 +20,7 @@ public interface BaseAdapterInterface<DATA, VIEW extends View & DataEntity<DATA>
     DATA getItem(int position);
 
     @NonNull
-    VIEW newInstance(@NonNull Context context, int position, @Nullable WeakReference<ObjectsReceiver> receiver);
+    VIEW newInstance(@NonNull Context context, int viewType, @Nullable WeakReference<ObjectsReceiver> receiver);
 
     void onViewSetData(@NonNull VIEW view, int position);
 }

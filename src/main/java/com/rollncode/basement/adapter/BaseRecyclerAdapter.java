@@ -1,108 +1,93 @@
 package com.rollncode.basement.adapter;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.rollncode.basement.interfaces.DataEntityRecycler;
+import com.rollncode.basement.interfaces.BaseAdapterInterface;
+import com.rollncode.basement.interfaces.DataEntity;
+import com.rollncode.basement.interfaces.ObjectsReceiver;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author Chekashov R.(email:roman_woland@mail.ru)
  * @since 07.06.16
  */
-public abstract class BaseRecyclerAdapter<DATA, VIEW extends View & DataEntityRecycler<DATA, VIEW>> extends RecyclerView.Adapter<BaseRecyclerAdapter.ViewHolder<DATA, VIEW>> {
+public abstract class BaseRecyclerAdapter<DATA, VIEW extends View & DataEntity<DATA>> extends RecyclerView.Adapter<BaseRecyclerAdapter.ViewHolder<DATA, VIEW>>
+        implements BaseAdapterInterface<DATA, VIEW> {
 
-    static class ViewHolder<DATA, VIEW extends View & DataEntityRecycler<DATA, VIEW>> extends RecyclerView.ViewHolder {
-
-        private final VIEW mView;
-
-        ViewHolder(@NonNull VIEW view) {
-            super(view.getSelf());
-            mView = view;
-        }
-
-        public final void setData(@NonNull DATA data, @NonNull Object... objects) {
-            mView.setData(data, objects);
-        }
-
-        public final VIEW getView() {
-            return mView;
-        }
-    }
-
+    private final WeakReference<ObjectsReceiver> mReceiver;
     private final List<DATA> mData;
-//TODO: put here objectsReceiver
-    public BaseRecyclerAdapter(@Nullable List<DATA> data) {
+
+    public <R extends ObjectsReceiver> BaseRecyclerAdapter(@Nullable R receiver, @Nullable List<DATA> data) {
+        mReceiver = receiver == null ? null : new WeakReference<ObjectsReceiver>(receiver);
         mData = data == null ? new ArrayList<DATA>(0) : new ArrayList<>(data);
     }
 
-    @Nullable
-    public DATA getItem(int position) {
-        return position < 0 || position >= mData.size() ? null : mData.get(position);
-    }
-
+    @Override
     @NonNull
-    public final List<DATA> getData() {
-        return mData;
+    public final DATA getItem(int position) {
+        return mData.get(position);
     }
 
     @Override
     public final ViewHolder<DATA, VIEW> onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ViewHolder<>(obtain(parent, viewType));
-    }
-
-    @Override
-    public final void onBindViewHolder(ViewHolder<DATA, VIEW> holder, int position) {
-        setData(holder, position);
-    }
-
-    @Override
-    public int getItemCount() {
-        return mData.size();
-    }
-
-    public void setData(@Nullable Collection<DATA> data) {
-        mData.clear();
-        if (data != null && data.size() > 0) {
-            mData.addAll(data);
-        }
-    }
-
-    public void setData(@Nullable DATA[] data) {
-        mData.clear();
-        if (data != null && data.length > 0) {
-            mData.addAll(Arrays.asList(data));
-        }
-    }
-
-    public void addData(@Nullable Collection<DATA> data) {
-        if (data != null && data.size() > 0) {
-            mData.addAll(data);
-        }
-    }
-
-    public void addData(@Nullable DATA[] data) {
-        if (data != null && data.length > 0) {
-            mData.addAll(Arrays.asList(data));
-        }
-    }
-
-    public void clear() {
-        mData.clear();
-        notifyDataSetChanged();
+        return new ViewHolder<>(newInstance(parent.getContext(), viewType, mReceiver));
     }
 
     @NonNull
-    protected abstract VIEW obtain(@NonNull View parent, int viewType);
+    public abstract VIEW newInstance(@NonNull Context context, int viewType, @Nullable WeakReference<ObjectsReceiver> receiver);
 
-    protected void setData(@NonNull ViewHolder<DATA, VIEW> holder, int position) {
-        holder.setData(mData.get(position), position);
+    @Override
+    public final void onBindViewHolder(ViewHolder<DATA, VIEW> holder, int position) {
+        onViewSetData(holder.getItemView(), position);
+    }
+
+    @Override
+    public void onViewSetData(@NonNull VIEW view, int position) {
+        view.setData(getItem(position), position);
+    }
+
+    @Override
+    public final int getItemCount() {
+        return mData.size();
+    }
+
+    @Override
+    public final void setData(@Nullable DATA[] data) {
+        mData.clear();
+        if (data != null && data.length > 0) {
+            Collections.addAll(mData, data);
+        }
+    }
+
+    @Override
+    public final void addData(@Nullable DATA[] data) {
+        if (data != null && data.length > 0) {
+            Collections.addAll(mData, data);
+        }
+    }
+
+    static class ViewHolder<DATA, VIEW extends View & DataEntity<DATA>> extends RecyclerView.ViewHolder {
+
+        private final Class<VIEW> mClass;
+
+        ViewHolder(@NonNull VIEW view) {
+            super(view);
+            //noinspection unchecked
+            mClass = (Class<VIEW>) view.getClass();
+        }
+
+        @NonNull
+        VIEW getItemView() {
+            return mClass.cast(itemView);
+        }
     }
 }

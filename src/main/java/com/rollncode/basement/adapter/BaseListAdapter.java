@@ -25,8 +25,8 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
     private final WeakReference<ObjectsReceiver> mReceiver;
     private final List<DATA> mData;
 
-    public BaseListAdapter(@Nullable ObjectsReceiver receiver, @Nullable DATA[] data) {
-        mReceiver = receiver == null ? null : new WeakReference<>(receiver);
+    public <R extends ObjectsReceiver> BaseListAdapter(@Nullable R receiver, @Nullable DATA[] data) {
+        mReceiver = receiver == null ? null : new WeakReference<ObjectsReceiver>(receiver);
 
         mData = new ArrayList<>();
         addData(data);
@@ -38,11 +38,6 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
         addData(data);
     }
 
-    public final void setData(@NonNull List<DATA> data) {
-        mData.clear();
-        mData.addAll(data);
-    }
-
     @Override
     public final void addData(@Nullable DATA[] data) {
         if (data != null && data.length > 0) {
@@ -51,28 +46,18 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
     }
 
     @Override
-    public void onViewSetData(@NonNull VIEW view, int position) {
-        view.setData(getItem(position), position);
-    }
-
-    @Override
-    public int getCount() {
+    public final int getCount() {
         return mData.size();
     }
 
     @Override
-    public DATA getItem(int position) {
+    public final DATA getItem(int position) {
         return mData.get(position);
     }
 
     @Override
     public final long getItemId(int position) {
         return position;
-    }
-
-    @NonNull
-    protected final List<DATA> getData() {
-        return mData;
     }
 
     @Override
@@ -83,5 +68,10 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
         onViewSetData(view, position);
 
         return view;
+    }
+
+    @Override
+    public void onViewSetData(@NonNull VIEW view, int position) {
+        view.setData(getItem(position), position);
     }
 }

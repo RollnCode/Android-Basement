@@ -27,8 +27,8 @@ public abstract class BasePagerViewAdapter<DATA, VIEW extends View & DataEntity<
     private final ReferencePool<VIEW> mPool;
     private final WeakReference<ObjectsReceiver> mReceiver;
 
-    public BasePagerViewAdapter(@Nullable ObjectsReceiver receiver, @Nullable DATA[] data) {
-        mReceiver = receiver == null ? null : new WeakReference<>(receiver);
+    public <R extends ObjectsReceiver> BasePagerViewAdapter(@Nullable R receiver, @Nullable DATA[] data) {
+        mReceiver = receiver == null ? null : new WeakReference<ObjectsReceiver>(receiver);
         mData = new ArrayList<>();
 
         final int poolSize;
