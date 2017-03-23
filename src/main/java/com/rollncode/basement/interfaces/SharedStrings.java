@@ -3,7 +3,7 @@ package com.rollncode.basement.interfaces;
 import java.nio.charset.Charset;
 
 @SuppressWarnings("unused")
-public interface SharedStrings {
+public @interface SharedStrings {
 
     //STRING
     String EMPTY = "";
@@ -21,13 +21,13 @@ public interface SharedStrings {
     String QUOTE = "\'";
     String QUOTE_DOUBLE = "\"";
     String DOT = ".";
-    String MORE = ">";
-    String LESS = "<";
     String DOTS = "…";
     String COLON = ":";
     String FILE_PREFIX = "file://";
 
     //CHAR
+    char LESS_C = '<';
+    char MORE_C = '>';
     char NEW_LINE_C = '\n';
     char TAB_C = '\t';
     char SPACE_C = ' ';

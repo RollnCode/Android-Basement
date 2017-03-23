@@ -47,4 +47,8 @@ public abstract class CalendarDateHelper {
         mDate.setTime(time);
         return format.format(mDate);
     }
+
+    public int getAge(long birthday) {
+        return BaseUtils.getAge(mCalendar, birthday);
+    }
 }
