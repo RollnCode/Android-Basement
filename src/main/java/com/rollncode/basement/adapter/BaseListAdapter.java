@@ -38,6 +38,11 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
         addData(data);
     }
 
+    public final void setData(@NonNull List<DATA> data) {
+        mData.clear();
+        mData.addAll(data);
+    }
+
     @Override
     public final void addData(@Nullable DATA[] data) {
         if (data != null && data.length > 0) {
@@ -51,7 +56,7 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
     }
 
     @Override
-    public final int getCount() {
+    public int getCount() {
         return mData.size();
     }
 

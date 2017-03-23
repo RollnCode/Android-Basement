@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -697,17 +698,14 @@ public abstract class BaseUtils {
         }
 
         if (TextUtils.isEmpty(code) && isNetworkAvailable((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE))) {
-            InputStream is = null;
             try {
                 final URLConnection connection = new URL("http://ipinfo.io/country").openConnection();
                 connection.connect();
 
-                is = connection.getInputStream();
-                code = toString(is, false);
+                final InputStream is = connection.getInputStream();
+                code = toString(is, true);
 
             } catch (Throwable ignore) {
-            } finally {
-                BaseUtils.closeSilently(is);
             }
         }
         return TextUtils.isEmpty(code) ? null : code.toUpperCase();
@@ -948,6 +946,16 @@ public abstract class BaseUtils {
     public static void append(@NonNull JSONObject object, @NonNull String key, double value) throws JSONException {
         if (!Double.isInfinite(value) && !Double.isNaN(value)) {
             object.put(key, value);
+        }
+    }
+
+    public static boolean isAppExists(@NonNull Context context, @NonNull String packageName) {
+        try {
+            context.getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+
+        } catch (NameNotFoundException e) {
+            return false;
         }
     }
 
