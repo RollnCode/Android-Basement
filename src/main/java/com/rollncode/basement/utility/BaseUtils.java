@@ -127,6 +127,11 @@ public abstract class BaseUtils {
         return false;
     }
 
+    public static boolean setTextVisibility(@NonNull TextView view, @Nullable CharSequence text, int ifEmpty) {
+        view.setText(text);
+        return setVisibility(view, view.length() == 0 ? ifEmpty : View.VISIBLE);
+    }
+
     public static boolean changeEnabled(@NonNull View view, boolean enabled) {
         final boolean changeEnabled = view.isEnabled() != enabled;
         if (changeEnabled) {
@@ -938,6 +943,12 @@ public abstract class BaseUtils {
             bytes[count++] = Byte.parseByte(s);
         }
         return bytes;
+    }
+
+    public static void append(@NonNull JSONObject object, @NonNull String key, double value) throws JSONException {
+        if (!Double.isInfinite(value) && !Double.isNaN(value)) {
+            object.put(key, value);
+        }
     }
 
     private static final class RefreshingRunnable implements Runnable {
