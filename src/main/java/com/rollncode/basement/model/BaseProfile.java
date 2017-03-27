@@ -16,10 +16,11 @@ import com.rollncode.basement.utility.BaseUtils;
  */
 public abstract class BaseProfile {
 
-    private static final String KEY_0 = "rocobapr.KEY_0";
-    private static final String KEY_1 = "rocobapr.KEY_1";
-    private static final String KEY_2 = "rocobapr.KEY_2";
-    private static final String KEY_3 = "rocobapr.KEY_3";
+    private static final String KEY_0 = "rocobapr.KEY_0";//mDeviceId
+    private static final String KEY_1 = "rocobapr.KEY_1";//mAppToken
+    private static final String KEY_2 = "rocobapr.KEY_2";//mPushToken
+    private static final String KEY_3 = "rocobapr.KEY_3";//mPushTokenSent
+    private static final String KEY_4 = "rocobapr.KEY_4";//mAppVersion
 
     protected final SharedPreferences mPreferences;
 
@@ -29,6 +30,8 @@ public abstract class BaseProfile {
 
     private String mPushToken;
     private boolean mPushTokenSent;
+
+    private int mAppVersion;
 
     protected BaseProfile(@NonNull SharedPreferences preferences) {
         mPreferences = preferences;
@@ -41,10 +44,19 @@ public abstract class BaseProfile {
         mAppToken = mPreferences.getString(KEY_1, null);
         mPushToken = mPreferences.getString(KEY_2, null);
         mPushTokenSent = mPreferences.getBoolean(KEY_3, false);
+        {
+            mAppVersion = mPreferences.getInt(KEY_4, Integer.MIN_VALUE);
+            final int currentAppVersion = getAppVersionCode();
+
+            if (currentAppVersion != mAppVersion) {
+                onAppVersionUpdate(mAppVersion, currentAppVersion);
+                mPreferences.edit().putInt(KEY_4, mAppVersion = currentAppVersion).apply();
+            }
+        }
     }
 
     @WorkerThread
-    public final void commit() {
+    protected final void commit() {
         final Editor editor = mPreferences.edit();
         try {
             editor
@@ -52,6 +64,7 @@ public abstract class BaseProfile {
                     .putString(KEY_1, mAppToken)
                     .putString(KEY_2, mPushToken)
                     .putBoolean(KEY_3, mPushTokenSent)
+                    .putInt(KEY_4, mAppVersion)
             ;
             onCommitChanges(editor);
 
@@ -66,6 +79,7 @@ public abstract class BaseProfile {
     @WorkerThread
     public final void reset() {
         mPreferences.edit().clear().apply();
+        mPreferences.edit().putInt(KEY_4, mAppVersion).apply();
 
         onReset();
         restoreFromPreferences();
@@ -125,5 +139,12 @@ public abstract class BaseProfile {
     public void setPushTokenSent(boolean pushTokenSent) {
         mPushTokenSent = pushTokenSent;
         commit();
+    }
+
+    protected int getAppVersionCode() {
+        return Integer.MIN_VALUE;
+    }
+
+    protected void onAppVersionUpdate(int oldVersion, int newVersion) {
     }
 }

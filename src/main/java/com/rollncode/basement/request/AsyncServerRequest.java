@@ -32,6 +32,7 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
 
     protected static final MediaType TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
     protected static final SimpleArrayMap<String, Object> EMPTY_PARAMETERS = new SimpleArrayMap<>(0);
+    protected static final String ARRAY_TYPE = "ARRAY_TYPE";
 
     protected AsyncServerRequest(@NonNull Class<RESULT> answerClass) {
         super(answerClass);
@@ -156,6 +157,9 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
 
     @NonNull
     private String toStringLikeJson(@NonNull SimpleArrayMap<String, Object> parameters) throws JSONException {
+        if (parameters.size() == 1 && parameters.containsKey(ARRAY_TYPE)) {
+            return parameters.get(ARRAY_TYPE).toString();
+        }
         final JSONObject object = new JSONObject();
         Object value;
         for (int i = 0, size = parameters.size(); i < size; i++) {

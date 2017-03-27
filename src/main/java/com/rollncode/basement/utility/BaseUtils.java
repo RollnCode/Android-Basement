@@ -1115,10 +1115,12 @@ public abstract class BaseUtils {
         final StringBuilder sb = new StringBuilder("geo:")
                 .append(latitude).append(SharedStrings.COMMA_C).append(longitude);
         if (!TextUtils.isEmpty(name)) {
-            sb.append("?q")
+            sb.append("?q=")
                     .append(latitude).append(SharedStrings.COMMA_C).append(longitude)
                     .append(SharedStrings.BRACKET_OPEN_C).append(name).append(SharedStrings.BRACKET_CLOSE_C);
         }
+        ALog.LOG.toLog(sb);
+
         final Intent intent = new Intent(Intent.ACTION_VIEW)
                 .setPackage("com.google.android.apps.maps")
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -29,6 +29,7 @@ import com.octo.android.robospice.request.SpiceRequest;
 import com.rollncode.basement.activity.BaseActivity;
 import com.rollncode.basement.interfaces.ObjectsReceiver;
 import com.rollncode.basement.utility.BaseARequestListener;
+import com.rollncode.basement.utility.WeakList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,12 +46,15 @@ public abstract class BaseFragment extends Fragment
 
     private BroadcastReceiver mInternetReceiver;
 
+    private WeakList<SpiceRequest> mRequestWithListener;
+
     @Override
     public void onCreate(Bundle b) {
         super.onCreate(b);
         super.setHasOptionsMenu(true);
 
         mAfterOnCreate = true;
+        mRequestWithListener = new WeakList<>();
     }
 
     @Nullable
@@ -165,6 +169,17 @@ public abstract class BaseFragment extends Fragment
         super.onDestroyView();
 
         try {
+            for (SpiceRequest request : mRequestWithListener.getStrong()) {
+                if (!request.isCancelled()) {
+                    request.cancel();
+                }
+            }
+
+        } catch (Exception ignore) {
+        } finally {
+            mRequestWithListener.clear();
+        }
+        try {
             onCleanUp();
 
         } catch (Exception ignore) {
@@ -239,6 +254,9 @@ public abstract class BaseFragment extends Fragment
     public abstract void setRefreshing(boolean block);
 
     public <RESULT, LISTENER extends BaseARequestListener<RESULT>> boolean execute(@NonNull SpiceRequest<RESULT> request, @Nullable LISTENER listener) {
+        if (listener != null) {
+            mRequestWithListener.add(request);
+        }
         final Context context = getContext();
         return context instanceof BaseActivity && ((BaseActivity) context).execute(request, listener);
     }
