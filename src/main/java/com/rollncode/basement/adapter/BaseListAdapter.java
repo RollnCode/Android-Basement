@@ -33,14 +33,9 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
     }
 
     @Override
-    public final void setData(@Nullable DATA[] data) {
+    public void setData(@Nullable DATA[] data) {
         mData.clear();
         addData(data);
-    }
-
-    public final void setData(@NonNull List<DATA> data) {
-        mData.clear();
-        mData.addAll(data);
     }
 
     @Override
@@ -48,6 +43,7 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
         if (data != null && data.length > 0) {
             Collections.addAll(mData, data);
         }
+        notifyDataSetChanged();
     }
 
     @Override
@@ -73,6 +69,11 @@ public abstract class BaseListAdapter<DATA, VIEW extends View & DataEntity<DATA>
     @NonNull
     protected final List<DATA> getData() {
         return mData;
+    }
+
+    public void setData(@NonNull List<DATA> data) {
+        mData.clear();
+        mData.addAll(data);
     }
 
     @Override

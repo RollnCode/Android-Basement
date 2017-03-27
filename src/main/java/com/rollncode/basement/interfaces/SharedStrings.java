@@ -83,6 +83,7 @@ public interface SharedStrings {
     String GMT = "GMT";
     String MAIL_TO = "mailto";
     String UTF_8 = "UTF-8";
+    String UTF_16 = "UTF-16";
     String DATA = "data";
     String VIDEO = "video";
 
