@@ -128,6 +128,11 @@ public abstract class BaseUtils {
         return false;
     }
 
+    public static boolean setTextVisibility(@NonNull TextView view, @Nullable CharSequence text, int ifEmpty) {
+        view.setText(text);
+        return setVisibility(view, view.length() == 0 ? ifEmpty : View.VISIBLE);
+    }
+
     public static boolean changeEnabled(@NonNull View view, boolean enabled) {
         final boolean changeEnabled = view.isEnabled() != enabled;
         if (changeEnabled) {
@@ -938,6 +943,12 @@ public abstract class BaseUtils {
         return bytes;
     }
 
+    public static void append(@NonNull JSONObject object, @NonNull String key, double value) throws JSONException {
+        if (!Double.isInfinite(value) && !Double.isNaN(value)) {
+            object.put(key, value);
+        }
+    }
+
     public static boolean isAppExists(@NonNull Context context, @NonNull String packageName) {
         try {
             context.getPackageManager().getPackageInfo(packageName, 0);
@@ -1098,5 +1109,27 @@ public abstract class BaseUtils {
             }
         }
         return null;
+    }
+
+    public static boolean openGoogleMap(@NonNull Context context, double latitude, double longitude, @Nullable String name) {
+        final StringBuilder sb = new StringBuilder("geo:")
+                .append(latitude).append(SharedStrings.COMMA_C).append(longitude);
+        if (!TextUtils.isEmpty(name)) {
+            sb.append("?q=")
+                    .append(latitude).append(SharedStrings.COMMA_C).append(longitude)
+                    .append(SharedStrings.BRACKET_OPEN_C).append(name).append(SharedStrings.BRACKET_CLOSE_C);
+        }
+        ALog.LOG.toLog(sb);
+
+        final Intent intent = new Intent(Intent.ACTION_VIEW)
+                .setPackage("com.google.android.apps.maps")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .setData(Uri.parse(sb.toString()));
+
+        if (intent.resolveActivity(context.getPackageManager()) == null) {
+            return false;
+        }
+        context.startActivity(intent);
+        return true;
     }
 }

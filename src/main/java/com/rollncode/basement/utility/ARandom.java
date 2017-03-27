@@ -20,7 +20,7 @@ public final class ARandom {
     public static String getImageUrl() {
         switch (nextInt(13)) {
             case 0:
-                return "http://www.proandroid.net/scr/3531/avatar-ukraintsa-big-7.png";
+                return "https://avatars2.githubusercontent.com/u/5955112";
 
             case 1:
                 return "http://cs6.pikabu.ru/images/big_size_comm/2014-04_3/13974696056179.jpg";
@@ -32,7 +32,7 @@ public final class ARandom {
                 return "http://www.lovemarks.com/wp-content/uploads/profile-avatars/default-avatar-business-bear.png";
 
             case 4:
-                return "https://pp.vk.me/c614823/v614823780/ba01/dF42a9Tcrr4.jpg";
+                return "https://avatars0.githubusercontent.com/u/9078701";
 
             case 5:
                 return "http://www.lovemarks.com/wp-content/uploads/profile-avatars/default-avatar-ponsy-deer.png";
@@ -172,5 +172,13 @@ public final class ARandom {
             default:
                 return getColor();
         }
+    }
+
+    public static double nextDouble() {
+        return RANDOM.nextDouble();
+    }
+
+    public static boolean nextBoolean() {
+        return RANDOM.nextBoolean();
     }
 }

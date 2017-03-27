@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
+import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -21,13 +22,12 @@ public abstract class BaseSettings {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    protected final void quickApply(@NonNull String key, @Nullable Object object) {
+    protected final void apply(@NonNull String key, @Nullable Object object) {
+        final Editor editor = edit();
         if (object == null) {
-            mPreferences.edit().remove(key).apply();
-            return;
-        }
-        final Editor editor = mPreferences.edit();
-        if (object instanceof String) {
+            editor.remove(key);
+
+        } else if (object instanceof String) {
             editor.putString(key, object.toString());
 
         } else if (object instanceof Integer) {
@@ -38,7 +38,13 @@ public abstract class BaseSettings {
 
         } else if (object instanceof Set) {
             //noinspection unchecked
-            editor.putStringSet(key, (Set<String>) object);
+            final Set<String> set = (Set<String>) object;
+            if (set.size() == 0) {
+                editor.remove(key);
+
+            } else {
+                editor.putStringSet(key, set);
+            }
 
         } else if (object instanceof Boolean) {
             editor.putBoolean(key, (boolean) object);
@@ -50,5 +56,10 @@ public abstract class BaseSettings {
             throw new IllegalStateException("Wrong object type: " + object.getClass().getName());
         }
         editor.apply();
+    }
+
+    @CheckResult
+    protected final Editor edit() {
+        return mPreferences.edit();
     }
 }

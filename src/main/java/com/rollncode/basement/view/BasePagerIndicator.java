@@ -64,7 +64,7 @@ public abstract class BasePagerIndicator extends LinearLayout
         super.addView(view, mIndicatorSize, mIndicatorSize);
 
         final LayoutParams params = (LayoutParams) view.getLayoutParams();
-        params.leftMargin = params.rightMargin = mIndicatorSize / 2;
+        params.leftMargin = params.rightMargin = mIndicatorSize / 4;
 
         view.requestLayout();
 

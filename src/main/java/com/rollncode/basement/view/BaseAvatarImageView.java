@@ -11,16 +11,16 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.TypedValue;
-import android.widget.ImageView;
 
 import com.bumptech.glide.DrawableTypeRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.rollncode.basement.utility.CropCircleTransformation;
 
-public abstract class BaseAvatarImageView extends ImageView {
+public abstract class BaseAvatarImageView extends AppCompatImageView {
 
     private static final String NOT_CHARACTER_AVATAR = "NOT_CHARACTER_AVATAR";
 

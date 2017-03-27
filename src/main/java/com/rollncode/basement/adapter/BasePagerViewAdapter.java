@@ -8,8 +8,10 @@ import android.view.ViewGroup;
 
 import com.rollncode.basement.interfaces.BaseAdapterInterface;
 import com.rollncode.basement.interfaces.DataEntity;
+import com.rollncode.basement.interfaces.ObjectsReceiver;
 import com.rollncode.basement.utility.ReferencePool;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,8 +25,10 @@ public abstract class BasePagerViewAdapter<DATA, VIEW extends View & DataEntity<
 
     private final List<DATA> mData;
     private final ReferencePool<VIEW> mPool;
+    private final WeakReference<ObjectsReceiver> mReceiver;
 
-    public BasePagerViewAdapter(@Nullable DATA[] data) {
+    public <R extends ObjectsReceiver> BasePagerViewAdapter(@Nullable R receiver, @Nullable DATA[] data) {
+        mReceiver = receiver == null ? null : new WeakReference<ObjectsReceiver>(receiver);
         mData = new ArrayList<>();
 
         final int poolSize;
@@ -60,7 +64,7 @@ public abstract class BasePagerViewAdapter<DATA, VIEW extends View & DataEntity<
     public final Object instantiateItem(ViewGroup container, int position) {
         VIEW view = mPool.acquire();
         if (view == null) {
-            view = newInstance(container.getContext(), position, null);
+            view = newInstance(container.getContext(), position, mReceiver);
         }
         onViewSetData(view, position);
 

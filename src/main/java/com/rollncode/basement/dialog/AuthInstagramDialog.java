@@ -136,6 +136,11 @@ public final class AuthInstagramDialog {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
+                final LayoutParams params = view.getLayoutParams();
+                if (params.height == LayoutParams.WRAP_CONTENT) {
+                    params.height = view.getHeight();
+                    view.requestLayout();
+                }
                 if (url.contains("code=")) {
                     final Uri uri = Uri.parse(url);
                     //noinspection ResourceType

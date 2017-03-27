@@ -2,6 +2,7 @@ package com.rollncode.basement.utility;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 
@@ -11,9 +12,6 @@ import android.widget.AbsListView.OnScrollListener;
  */
 public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseARequestListener<RESULT[]>>
         implements OnScrollListener {
-
-    private static final int LIMIT = 25;
-    private static final int ATTEMPTS = 2;
 
     private final LISTENER mRequestListener;
 
@@ -26,11 +24,14 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
     private int mOffset;
     private int mAttemptCount;
 
-    protected BaseOffsetLimitHelper() {
+    private int mOldTop;
+    private int mOldFirstVisibleItem;
+
+    protected BaseOffsetLimitHelper(int limit, int attempts) {
         mRequestListener = newListenerInstance();
 
-        mLimit = LIMIT;
-        mAttempts = ATTEMPTS;
+        mLimit = limit;
+        mAttempts = attempts;
     }
 
     @NonNull
@@ -81,11 +82,38 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
     }
 
     @Override
-    public final void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+    public final void onScroll(AbsListView absListView, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        final View view = absListView == null ? null : absListView.getChildAt(0);
+        final int top = (view == null) ? 0 : view.getTop();
+
+        if (firstVisibleItem == mOldFirstVisibleItem) {
+            if (top > mOldTop) {
+                onScrollDown();
+
+            } else if (top < mOldTop) {
+                onScrollUp();
+            }
+
+        } else {
+            if (firstVisibleItem < mOldFirstVisibleItem) {
+                onScrollDown();
+
+            } else {
+                onScrollUp();
+            }
+        }
+
+        mOldTop = top;
+        mOldFirstVisibleItem = firstVisibleItem;
+
         if (mWaitForResponse) {
             return;
         }
-        if (totalItemCount == 0 || firstVisibleItem + visibleItemCount == totalItemCount) {
+
+        if (mAttemptCount == mAttempts && firstVisibleItem == totalItemCount) {
+            lastItemThrown();
+
+        } else if (totalItemCount == 0 || firstVisibleItem + visibleItemCount == totalItemCount) {
             if (!mErrorInResponse && mAttemptCount < mAttempts && executeRequest(mOffset, mLimit, mRequestListener)) {
                 mWaitForResponse = true;
                 setRefreshing(true);
@@ -109,9 +137,7 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
         {
             final int length = results == null ? 0 : results.length;
             if (length == 0) {
-                if (mOffset == 0) {
-                    onData(null, false);
-                }
+                onData(null, mOffset != 0);
                 mAttemptCount++;
 
             } else {
@@ -123,5 +149,14 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
             mOffset += length;
         }
         mWaitForResponse = mErrorInResponse = false;
+    }
+
+    protected void lastItemThrown() {
+    }
+
+    protected void onScrollUp() {
+    }
+
+    protected void onScrollDown() {
     }
 }

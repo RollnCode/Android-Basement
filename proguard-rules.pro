@@ -60,7 +60,9 @@
 
 #Common
 -keepattributes Signature
-
 -keepclassmembers class * {
     static java.lang.String *;
 }
+
+-keep class org.apache.http.** { *; }
+-dontwarn org.apache.http.**
