@@ -13,7 +13,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -206,7 +205,7 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
     @Nullable
     @Override
     protected RESULT handleException(@NonNull Throwable t) {
-        if (t == BaseApiException.SILENT || t instanceof InterruptedIOException) {
+        if (t == BaseApiException.SILENT) {
             if (showLog()) {
                 LOG.toLog("<<< E silent\tcode: " + getCode()
                         + "\tclass: " + getClass().getSimpleName()
