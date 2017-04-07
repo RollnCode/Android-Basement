@@ -23,6 +23,7 @@ public @interface SharedStrings {
     String DOT = ".";
     String DOTS = "…";
     String COLON = ":";
+    String UNDERSCORE = "_";
     String FILE_PREFIX = "file://";
 
     //CHAR

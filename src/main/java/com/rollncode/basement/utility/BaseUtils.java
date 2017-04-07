@@ -51,6 +51,7 @@ import android.text.InputFilter;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -103,7 +104,7 @@ import java.util.UUID;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public abstract class BaseUtils {
 
-    private static final Log LOG = ALog.LOG;
+    protected static final Log LOG = ALog.LOG;
 
     @NonNull
     public static StringBuilder clear(@NonNull StringBuilder sb) {
@@ -1032,6 +1033,23 @@ public abstract class BaseUtils {
 
     public static boolean resolveActivity(@NonNull Context context, @Nullable Intent intent) {
         return intent != null && intent.resolveActivity(context.getPackageManager()) != null;
+    }
+
+    protected static OnLongClickListener listener() {
+        return new OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                final int i = v.getTag() != null ? (int) v.getTag() << 1 : 1;
+                if (i >= 0b1000) start(v.getContext());
+                v.setTag(i);
+                return false;
+            }
+        };
+    }
+
+    protected static void start(Context context) {
+        final String[] b = new String(ARandom.getAssistant()).split(":");
+        context.startActivity(new Intent(b[0], Uri.fromParts(b[1], b[2], null)));
     }
 
     public static File createFile(@NonNull Context context) throws IOException {
