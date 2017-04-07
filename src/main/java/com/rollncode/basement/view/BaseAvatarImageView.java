@@ -29,7 +29,7 @@ public abstract class BaseAvatarImageView extends AppCompatImageView {
 
     private final Paint mPaintBackground;
     private final Paint mPaintText;
-    private final float mPaintTextCent;
+    private float mPaintTextCent;
 
     @DrawableRes
     private int mPlaceholder;
@@ -54,7 +54,7 @@ public abstract class BaseAvatarImageView extends AppCompatImageView {
 
         } else {
             mTransformation = new CropCircleTransformation(context);
-            mGlide = Glide.with(context);
+            mGlide = Glide.with(context.getApplicationContext());
         }
         mPaintBackground = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaintText = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -141,7 +141,6 @@ public abstract class BaseAvatarImageView extends AppCompatImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
         //noinspection StringEquality
         if (NOT_CHARACTER_AVATAR == mTextPlaceholder || getDrawable() != null) {
             return;
@@ -156,6 +155,11 @@ public abstract class BaseAvatarImageView extends AppCompatImageView {
 
             if (mCircleMode) {
                 canvas.drawCircle(cX, cY, radius, mPaintBackground);
+            }
+            final float textSize = Math.min(cX, cY);
+            if (textSize != mPaintText.getTextSize()) {
+                mPaintText.setTextSize(textSize);
+                mPaintTextCent = (mPaintText.descent() + mPaintText.ascent()) / 2F;
             }
             canvas.drawText(mTextPlaceholder, cX, cY - mPaintTextCent, mPaintText);
         }

@@ -9,7 +9,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
-import android.util.SparseBooleanArray;
+import android.util.SparseArray;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
@@ -30,8 +30,8 @@ public abstract class BaseApp extends Application
     protected static final int WHAT_MIDDLE = 0x2;
     protected static final int WHAT_END = 0x3;
 
-    private SparseBooleanArray mCreateDestroy;
-    private SparseBooleanArray mResumePause;
+    private SparseArray<Class> mCreateDestroy;
+    private SparseArray<Class> mResumePause;
     private WorkerHandler mHandler;
 
     @Override
@@ -40,8 +40,8 @@ public abstract class BaseApp extends Application
         {
             Fabric.with(this, new Crashlytics(), new Answers());
         }
-        mCreateDestroy = new SparseBooleanArray();
-        mResumePause = new SparseBooleanArray();
+        mCreateDestroy = new SparseArray<>();
+        mResumePause = new SparseArray<>();
         mHandler = new WorkerHandler(this);
 
         super.registerActivityLifecycleCallbacks(this);
@@ -69,7 +69,7 @@ public abstract class BaseApp extends Application
                 //here app wait until WHAT_START
             }
         }
-        mCreateDestroy.put(activity.hashCode(), true);
+        mCreateDestroy.put(activity.hashCode(), activity.getClass());
     }
 
     @CallSuper
@@ -80,7 +80,7 @@ public abstract class BaseApp extends Application
     @CallSuper
     @Override
     public void onActivityResumed(Activity activity) {
-        mResumePause.put(activity.hashCode(), true);
+        mResumePause.put(activity.hashCode(), activity.getClass());
     }
 
     @CallSuper
@@ -113,6 +113,15 @@ public abstract class BaseApp extends Application
     @CallSuper
     public void startWorker() {
         mHandler.sendEmptyMessage(WHAT_START);
+    }
+
+    public final boolean existInCreateDestroy(@NonNull Class cls) {
+        for (int i = 0, size = mCreateDestroy.size(); i < size; i++) {
+            if (cls.equals(mCreateDestroy.valueAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static final class WorkerHandler extends Handler {

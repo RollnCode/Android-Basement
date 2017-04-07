@@ -50,7 +50,7 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
     }
 
     public final boolean queryAll() {
-        return queryAll(false);
+        return queryAll(true);
     }
 
     public final boolean queryAll(boolean force) {

@@ -999,6 +999,12 @@ public abstract class BaseUtils {
         }
     }
 
+    public static void showMessage(@NonNull Context context, @Nullable CharSequence message) {
+        if (!TextUtils.isEmpty(message)) {
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+        }
+    }
+
     @CheckResult
     @SuppressLint("HardwareIds")
     public static String getDeviceId(@NonNull Context context) {

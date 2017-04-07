@@ -17,16 +17,18 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.ViewPropertyAnimator;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 
-import com.rollncode.basement.utility.ALog;
-import com.rollncode.basement.utility.ARandom;
 import com.rollncode.basement.interfaces.OnStackViewCallback;
 import com.rollncode.basement.type.GestureDirection;
+import com.rollncode.basement.utility.ALog;
+import com.rollncode.basement.utility.ARandom;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -132,6 +134,7 @@ public final class StackView extends FrameLayout {
         mStackViewCallback = callback;
     }
 
+    @SuppressWarnings("unused")
     public void setSwipeDisabled(boolean swipeDisabled) {
         mSwipeDisabled = swipeDisabled;
     }
@@ -169,6 +172,10 @@ public final class StackView extends FrameLayout {
             return true;
         }
         return false;
+    }
+
+    public final int getFrontPosition() {
+        return mFrontPosition;
     }
 
     public boolean releaseFrontItem(@GestureDirection int direction) {
@@ -380,7 +387,7 @@ public final class StackView extends FrameLayout {
     };
 
     @Override
-    public void removeAllViews() {
+    public synchronized void removeAllViews() {
         final View[] views = new View[getChildCount()];
         for (int i = 0; i < views.length; i++) {
             views[i] = getChildAt(i);
@@ -391,7 +398,7 @@ public final class StackView extends FrameLayout {
     }
 
     @Override
-    public void removeView(View view) {
+    public synchronized void removeView(View view) {
         super.removeView(view);
         if (view != null) {
             view.animate().cancel();
@@ -400,7 +407,7 @@ public final class StackView extends FrameLayout {
     }
 
     @Override
-    public void removeViewAt(int index) {
+    public synchronized void removeViewAt(int index) {
         final View view = getChildAt(index);
         super.removeViewAt(index);
 
@@ -421,12 +428,17 @@ public final class StackView extends FrameLayout {
     }
 
     private void addChildView(int index, int position, boolean animate) {
-        super.addView(getPreparedChildView(index, position, animate), 0, mParams);
+        final View view = getPreparedChildView(index, position, animate);
+        final ViewParent parent = view.getParent();
+        if (parent instanceof ViewGroup) {
+            ((ViewGroup) parent).removeView(view);
+        }
+        super.addView(view, 0, mParams);
     }
 
     @CheckResult
     @NonNull
-    private View getPreparedChildView(int index, int position, boolean animate) {
+    private synchronized View getPreparedChildView(int index, int position, boolean animate) {
         final View recycled = mRecycledChildren.size() > 0 ? mRecycledChildren.remove(0) : null;
         if (recycled != null) {
             recycled.animate().cancel();
