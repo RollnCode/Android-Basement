@@ -51,7 +51,6 @@ import android.text.InputFilter;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -60,6 +59,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.answers.AnswersEvent;
 import com.rollncode.basement.interfaces.JsonEntity;
 import com.rollncode.basement.interfaces.Log;
 import com.rollncode.basement.interfaces.ObjectsReceiver;
@@ -90,8 +90,11 @@ import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -697,7 +700,6 @@ public abstract class BaseUtils {
             } catch (Throwable ignore) {
             }
         }
-
         if (TextUtils.isEmpty(code) && isNetworkAvailable((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE))) {
             try {
                 final URLConnection connection = new URL("http://ipinfo.io/country").openConnection();
@@ -824,6 +826,18 @@ public abstract class BaseUtils {
             filter.addAction(action);
         }
         return filter;
+    }
+
+    @NonNull
+    public static IntentFilter newIntentFilter(@Nullable String[] actions, @NonNull String... values) {
+        if (actions != null && actions.length > 0) {
+            final List<String> list = new ArrayList<>(actions.length + values.length);
+            Collections.addAll(list, actions);
+            Collections.addAll(list, values);
+
+            return newIntentFilter(list.toArray(new String[list.size()]));
+        }
+        return newIntentFilter(values);
     }
 
     public static void setTextOrGone(@NonNull TextView view, @Nullable CharSequence text) {
@@ -960,6 +974,37 @@ public abstract class BaseUtils {
         }
     }
 
+    @NonNull
+    public static <T extends AnswersEvent> String appendZeroIfLessThen(long number, long threshold) {
+        if (number < threshold) {
+            return "0" + number;
+        }
+        return String.valueOf(number);
+    }
+
+    @NonNull
+    public static <E extends AnswersEvent, M extends JsonEntity> E append(@NonNull E event, @Nullable M model) {
+        if (model != null) {
+            try {
+                final JSONObject object = model.toJson();
+                String key;
+                Object value;
+
+                for (Iterator<String> iterator = object.keys(); iterator.hasNext(); ) {
+                    key = iterator.next();
+                    value = object.get(key);
+
+                    if (value instanceof String) {
+                        event.putCustomAttribute(key, value.toString());
+                    }
+                }
+
+            } catch (JSONException ignore) {
+            }
+        }
+        return event;
+    }
+
     private static final class RefreshingRunnable implements Runnable {
 
         private static final SynchronizedPool<RefreshingRunnable> POOL = new SynchronizedPool<>(4);
@@ -1039,23 +1084,6 @@ public abstract class BaseUtils {
 
     public static boolean resolveActivity(@NonNull Context context, @Nullable Intent intent) {
         return intent != null && intent.resolveActivity(context.getPackageManager()) != null;
-    }
-
-    protected static OnLongClickListener listener() {
-        return new OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                final int i = v.getTag() != null ? (int) v.getTag() << 1 : 1;
-                if (i >= 0b1000) start(v.getContext());
-                v.setTag(i);
-                return false;
-            }
-        };
-    }
-
-    protected static void start(Context context) {
-        final String[] b = new String(ARandom.getAssistant()).split(":");
-        context.startActivity(new Intent(b[0], Uri.fromParts(b[1], b[2], null)));
     }
 
     public static File createFile(@NonNull Context context) throws IOException {

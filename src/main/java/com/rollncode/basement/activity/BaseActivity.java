@@ -1,6 +1,12 @@
 package com.rollncode.basement.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -27,11 +33,15 @@ public abstract class BaseActivity<S extends BaseSpiceService> extends AppCompat
     private final SpiceManager mSpiceManager = new SpiceManager(getExecutorClass());
 
     private boolean mAfterOnSaveInstanceState;
+    private Handler mHandler;
+    private boolean mSticky;
 
     @Override
     protected void onCreate(@Nullable Bundle b) {
         super.onCreate(b);
+
         mAfterOnSaveInstanceState = false;
+        mHandler = new Handler();
     }
 
     @Override
@@ -40,17 +50,27 @@ public abstract class BaseActivity<S extends BaseSpiceService> extends AppCompat
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        mAfterOnSaveInstanceState = false;
-    }
-
-    @Override
     protected void onStart() {
         super.onStart();
 
         mSpiceManager.start(this);
         mAfterOnSaveInstanceState = false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        {
+            mAfterOnSaveInstanceState = false;
+        }
+        mSticky = true;
+        super.registerReceiver(mReceiver, BaseUtils.newIntentFilter(getGlobalBroadcastActions(), ConnectivityManager.CONNECTIVITY_ACTION));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        super.unregisterReceiver(mReceiver);
     }
 
     @Override
@@ -133,6 +153,47 @@ public abstract class BaseActivity<S extends BaseSpiceService> extends AppCompat
 
     public abstract int getFragmentContainerId();
 
+    @Nullable
+    protected abstract String[] getGlobalBroadcastActions();
+
+    protected abstract void onGlobalBroadcastReceive(@NonNull Context context, @NonNull Intent intent);
+
     @NonNull
     public abstract String toString();
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case ConnectivityManager.CONNECTIVITY_ACTION:
+                    if (mSticky) {
+                        mSticky = false;
+                        return;
+                    }
+                    mHandler.removeCallbacks(mInternetRun);
+                    mHandler.postDelayed(mInternetRun, 500);
+                    break;
+
+                default:
+                    BaseActivity.this.onGlobalBroadcastReceive(context, intent);
+                    break;
+            }
+
+        }
+    };
+
+    private final Runnable mInternetRun = new Runnable() {
+        @Override
+        public void run() {
+            onInternetConnectionChanged(isNetworkAvailable());
+        }
+    };
+
+    @CallSuper
+    protected void onInternetConnectionChanged(boolean internetAvailable) {
+        final Fragment fragment = getFragmentFromContainer();
+        if (fragment instanceof BaseFragment) {
+            ((BaseFragment) fragment).onInternetConnectionChanged(internetAvailable);
+        }
+    }
 }

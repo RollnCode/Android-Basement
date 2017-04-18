@@ -1,15 +1,10 @@
 package com.rollncode.basement.fragment;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
-import android.support.annotation.CheckResult;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -44,8 +39,6 @@ public abstract class BaseFragment extends Fragment
 
     protected boolean mAfterOnCreate;
 
-    private BroadcastReceiver mInternetReceiver;
-
     private WeakList<SpiceRequest> mRequestWithListener;
 
     @Override
@@ -77,25 +70,6 @@ public abstract class BaseFragment extends Fragment
 
         if (bar != null) {
             onActionBarReady(bar);
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (mInternetReceiver == null) {
-            getContext().registerReceiver(mInternetReceiver = newInternetReceiver(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        if (mInternetReceiver != null) {
-            getContext().unregisterReceiver(mInternetReceiver);
-            mInternetReceiver = null;
         }
     }
 
@@ -261,42 +235,12 @@ public abstract class BaseFragment extends Fragment
         return context instanceof BaseActivity && ((BaseActivity) context).execute(request, listener);
     }
 
-    @CheckResult
-    private BroadcastReceiver newInternetReceiver() {
-        return new BroadcastReceiver() {
-
-            private boolean mSticky = true;
-
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (mSticky) {
-                    mSticky = false;
-                    return;
-                }
-                final View view = getView();
-                if (view != null && view.getParent() != null) {
-                    view.removeCallbacks(mInternetRun);
-                    view.postDelayed(mInternetRun, 500);
-                }
-            }
-        };
-    }
-
-    private final Runnable mInternetRun = new Runnable() {
-        @Override
-        public void run() {
-            onInternetConnectionChanged(isNetworkAvailable());
-        }
-    };
-
     @LayoutRes
     protected abstract int getLayoutResId();
 
     protected abstract void onCleanUp() throws Exception;
 
-    protected abstract boolean isNetworkAvailable();
-
-    protected abstract void onInternetConnectionChanged(boolean internetAvailable);
+    public abstract void onInternetConnectionChanged(boolean internetAvailable);
 
     @NonNull
     public abstract String toString();

@@ -11,7 +11,7 @@ import android.text.TextUtils;
  */
 public abstract class BaseApiException extends RuntimeException {
 
-    protected static final int UNKNOWN_ERROR = Integer.MIN_VALUE;
+    private static final int UNKNOWN_ERROR = Integer.MIN_VALUE;
 
     @SuppressWarnings({"ThrowableInstanceNeverThrown", "Range"})
     public static final BaseApiException SILENT = new BaseApiException(null, null, UNKNOWN_ERROR) {
@@ -41,7 +41,7 @@ public abstract class BaseApiException extends RuntimeException {
     @NonNull
     @Override
     public String toString() {
-        if (mErrorCode > 0 && isKnownError(mErrorCode)) {
+        if (mErrorCode != 0 && isKnownError(mErrorCode)) {
             return getMessage(mErrorCode);
         }
         String message = super.getMessage();

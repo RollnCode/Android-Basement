@@ -15,6 +15,8 @@ import org.json.JSONObject;
 import java.io.InputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.List;
+import java.util.Map;
 
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -180,6 +182,8 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
 
             raw = BaseUtils.toString(is, false);
 
+            onHeaders(response.headers().toMultimap());
+
             checkResponseCode(raw, responseCode);
 
             return parseResult(raw);
@@ -196,6 +200,8 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
             }
         }
     }
+
+    protected abstract void onHeaders(@NonNull Map<String, List<String>> map);
 
     protected abstract void checkResponseCode(@Nullable String string, int responseCode) throws Exception;
 

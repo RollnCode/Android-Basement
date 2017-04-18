@@ -1,9 +1,7 @@
 package com.rollncode.basement.application;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.preference.PreferenceManager;
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,8 +16,8 @@ public abstract class BaseSettings {
 
     protected final SharedPreferences mPreferences;
 
-    protected BaseSettings(@NonNull Context context) {
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+    protected BaseSettings(@NonNull SharedPreferences preferences) {
+        mPreferences = preferences;
     }
 
     protected final void apply(@NonNull String key, @Nullable Object object) {
@@ -61,5 +59,9 @@ public abstract class BaseSettings {
     @CheckResult
     protected final Editor edit() {
         return mPreferences.edit();
+    }
+
+    public final void clear() {
+        edit().clear().apply();
     }
 }
