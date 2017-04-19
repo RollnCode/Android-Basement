@@ -711,7 +711,7 @@ public abstract class BaseUtils {
             } catch (Throwable ignore) {
             }
         }
-        return TextUtils.isEmpty(code) ? null : code.toUpperCase();
+        return TextUtils.isEmpty(code) ? null : code.toUpperCase(Locale.ENGLISH);
     }
 
     @Nullable

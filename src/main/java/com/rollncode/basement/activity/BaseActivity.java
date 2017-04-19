@@ -20,7 +20,6 @@ import com.octo.android.robospice.request.SpiceRequest;
 import com.rollncode.basement.fragment.BaseFragment;
 import com.rollncode.basement.interfaces.OnBackPressedListener;
 import com.rollncode.basement.request.AsyncRequest;
-import com.rollncode.basement.service.BaseSpiceService;
 import com.rollncode.basement.utility.BaseARequestListener;
 import com.rollncode.basement.utility.BaseUtils;
 
@@ -28,9 +27,9 @@ import com.rollncode.basement.utility.BaseUtils;
  * @author Tregub Artem tregub.artem@gmail.com
  * @since 19/01/17
  */
-public abstract class BaseActivity<S extends BaseSpiceService> extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity {
 
-    private final SpiceManager mSpiceManager = new SpiceManager(getExecutorClass());
+    private final SpiceManager mSpiceManager = newSpiceManager();
 
     private boolean mAfterOnSaveInstanceState;
     private Handler mHandler;
@@ -53,7 +52,9 @@ public abstract class BaseActivity<S extends BaseSpiceService> extends AppCompat
     protected void onStart() {
         super.onStart();
 
-        mSpiceManager.start(this);
+        if (mSpiceManager != null) {
+            mSpiceManager.start(this);
+        }
         mAfterOnSaveInstanceState = false;
     }
 
@@ -83,16 +84,18 @@ public abstract class BaseActivity<S extends BaseSpiceService> extends AppCompat
     protected void onStop() {
         super.onStop();
 
-        if (mSpiceManager.isStarted()) {
+        if (mSpiceManager != null && mSpiceManager.isStarted()) {
             mSpiceManager.shouldStop();
         }
     }
 
     public final <RESULT, LISTENER extends BaseARequestListener<RESULT>> boolean execute(@NonNull SpiceRequest<RESULT> request, @Nullable LISTENER listener) {
+        if (mSpiceManager == null) {
+            throw new IllegalStateException();
+        }
         final boolean isNetworkRequired = !(request instanceof AsyncRequest) || ((AsyncRequest) request).isNetworkRequired();
         if (isNetworkRequired) {
             if (isNetworkAvailable()) {
-                mSpiceManager.execute(request, listener);
                 return true;
 
             } else if (listener != null) {
@@ -146,8 +149,8 @@ public abstract class BaseActivity<S extends BaseSpiceService> extends AppCompat
         return getFragmentFromContainer(getFragmentContainerId());
     }
 
-    @NonNull
-    protected abstract <S extends BaseSpiceService> Class<S> getExecutorClass();
+    @Nullable
+    protected abstract SpiceManager newSpiceManager();
 
     protected abstract boolean isNetworkAvailable();
 
