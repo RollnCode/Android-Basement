@@ -1,15 +1,4 @@
-/.idea
-/local.properties
-/build
 /captures
-/gradle
-
-.gradle
-.DS_Store
-
-gradlew
-gradlew.bat
-
-*.iml
-*.log
 *.hprof
+basement.iml
+build/

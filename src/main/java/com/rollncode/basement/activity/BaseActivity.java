@@ -96,6 +96,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         final boolean isNetworkRequired = !(request instanceof AsyncRequest) || ((AsyncRequest) request).isNetworkRequired();
         if (isNetworkRequired) {
             if (isNetworkAvailable()) {
+                mSpiceManager.execute(request, listener);
                 return true;
 
             } else if (listener != null) {
