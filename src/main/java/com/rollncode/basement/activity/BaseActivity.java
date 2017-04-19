@@ -190,7 +190,7 @@ public abstract class BaseActivity<S extends BaseSpiceService> extends AppCompat
     };
 
     @CallSuper
-    protected void onInternetConnectionChanged(boolean internetAvailable) {
+    private void onInternetConnectionChanged(boolean internetAvailable) {
         final Fragment fragment = getFragmentFromContainer();
         if (fragment instanceof BaseFragment) {
             ((BaseFragment) fragment).onInternetConnectionChanged(internetAvailable);
