@@ -38,14 +38,14 @@ public abstract class BaseApiException extends RuntimeException {
 
     protected abstract int toErrorCode(@NonNull Throwable throwable, int code);
 
-    @SuppressWarnings("unused")
-    public final int getErrorCode() {
-        return mErrorCode;
-    }
-
     @Override
     public final String getMessage() {
         return toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return mErrorCode;
     }
 
     @NonNull
