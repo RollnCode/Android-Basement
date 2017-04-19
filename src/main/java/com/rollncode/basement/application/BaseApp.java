@@ -3,10 +3,16 @@ package com.rollncode.basement.application;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Application.ActivityLifecycleCallbacks;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.StrictMode;
+import android.os.StrictMode.ThreadPolicy;
+import android.os.StrictMode.ThreadPolicy.Builder;
+import android.os.StrictMode.VmPolicy;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.util.SparseArray;
@@ -23,6 +29,7 @@ import io.fabric.sdk.android.Fabric;
  * @author Tregub Artem tregub.artem@gmail.com
  * @since 19/01/17
  */
+@SuppressWarnings("unused")
 public abstract class BaseApp extends Application
         implements ActivityLifecycleCallbacks {
 
@@ -45,6 +52,29 @@ public abstract class BaseApp extends Application
         mHandler = new WorkerHandler(this);
 
         super.registerActivityLifecycleCallbacks(this);
+    }
+
+    protected final void restrictMode() {
+        final ThreadPolicy.Builder threadPolicy = new Builder()
+                .penaltyDeath()
+                .penaltyLog()
+                .detectAll();
+        StrictMode.setThreadPolicy(threadPolicy.build());
+
+        final VmPolicy.Builder vmPolicy = new VmPolicy.Builder()
+                .penaltyDeath()
+                .penaltyLog()
+                .detectActivityLeaks()
+//                    .detectLeakedSqlLiteObjects()
+//                    .detectLeakedClosableObjects()
+                .detectLeakedRegistrationObjects();
+        if (VERSION.SDK_INT >= VERSION_CODES.M) {
+            vmPolicy
+                    .detectFileUriExposure()
+//                        .detectCleartextNetwork()
+            ;
+        }
+        StrictMode.setVmPolicy(vmPolicy.build());
     }
 
     protected abstract void handleMessage(int what);

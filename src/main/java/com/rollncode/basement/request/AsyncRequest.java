@@ -6,12 +6,11 @@ import android.support.annotation.WorkerThread;
 
 import com.octo.android.robospice.request.SpiceRequest;
 import com.octo.android.robospice.retry.DefaultRetryPolicy;
-import com.rollncode.basement.interfaces.Log;
 import com.rollncode.basement.utility.ALog;
 
 public abstract class AsyncRequest<RESULT> extends SpiceRequest<RESULT> {
 
-    protected static final Log LOG = new ALog("requestLog").setShowLogs(true);
+    protected static final ALog LOG = new ALog("requestLog");
 
     private static final DefaultRetryPolicy RETRY_POLICY = new DefaultRetryPolicy(1, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
 

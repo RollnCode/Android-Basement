@@ -29,11 +29,15 @@ import okhttp3.Response;
  * @author Tregub Artem tregub.artem@gmail.com
  * @since 23/01/17
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RESULT> {
 
     protected static final MediaType TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
     protected static final SimpleArrayMap<String, Object> EMPTY_PARAMETERS = new SimpleArrayMap<>(0);
     protected static final String ARRAY_TYPE = "ARRAY_TYPE";
+
+    private String mUrl;
+    private String mParameters;
 
     protected AsyncServerRequest(@NonNull Class<RESULT> answerClass) {
         super(answerClass);
@@ -87,10 +91,18 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
     protected abstract String getServerUrl();
 
     @NonNull
-    protected abstract String getUrl();
+    protected final String getUrl() {
+        if (mUrl == null) {
+            mUrl = getApiUrl();
+        }
+        return mUrl;
+    }
 
     @NonNull
-    protected String attachParameters(@NonNull Builder builder, @NonNull String url, @Nullable SimpleArrayMap<String, Object> parameters) throws Exception {
+    protected abstract String getApiUrl();
+
+    @NonNull
+    private String attachParameters(@NonNull Builder builder, @NonNull String url, @Nullable SimpleArrayMap<String, Object> parameters) throws Exception {
         switch (getRequestType()) {
             case RequestType.GET:
                 if (parameters != null) {
@@ -149,11 +161,15 @@ public abstract class AsyncServerRequest<RESULT> extends AsyncNetworkRequest<RES
 
     @NonNull
     protected final String toString(@NonNull SimpleArrayMap<String, Object> parameters) throws JSONException {
-        final MediaType type = getMediaType();
-        if (TYPE_JSON.equals(type)) {
-            return toStringLikeJson(parameters);
+        if (mParameters == null) {
+            if (TYPE_JSON.equals(getMediaType())) {
+                mParameters = toStringLikeJson(parameters);
+            }
         }
-        throw new IllegalStateException();
+        if (mParameters == null) {
+            throw new IllegalStateException();
+        }
+        return mParameters;
     }
 
     @NonNull

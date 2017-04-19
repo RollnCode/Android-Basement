@@ -1,6 +1,5 @@
 package com.rollncode.basement.exception;
 
-import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -11,31 +10,42 @@ import android.text.TextUtils;
  */
 public abstract class BaseApiException extends RuntimeException {
 
-    private static final int UNKNOWN_ERROR = Integer.MIN_VALUE;
-
     @SuppressWarnings({"ThrowableInstanceNeverThrown", "Range"})
-    public static final BaseApiException SILENT = new BaseApiException(null, null, UNKNOWN_ERROR) {
+    public static final BaseApiException SILENT = new BaseApiException(null, null, 0) {
+        @Override
+        protected int toErrorCode(@NonNull Throwable throwable, int code) {
+            return code;
+        }
+
+        @Override
+        protected boolean isKnownError(int code) {
+            return false;
+        }
+
+        @NonNull
+        @Override
+        protected String getMessage(int code) {
+            return "silent";
+        }
     };
 
     private final int mErrorCode;
 
-    protected BaseApiException(@Nullable Throwable throwable, @Nullable String message, @IntRange(from = 1) int errorCode) {
+    protected BaseApiException(@Nullable Throwable throwable, @Nullable String message, int code) {
         super(message, throwable);
-        mErrorCode = toErrorCode(throwable, errorCode);
+        mErrorCode = throwable == null ? code : toErrorCode(throwable, code);
     }
 
-    protected int toErrorCode(@Nullable Throwable throwable, int code) {
-        return code;
-    }
-
-    @SuppressWarnings("unused")
-    public final int getErrorCode() {
-        return mErrorCode;
-    }
+    protected abstract int toErrorCode(@NonNull Throwable throwable, int code);
 
     @Override
     public final String getMessage() {
         return toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return mErrorCode;
     }
 
     @NonNull
@@ -56,15 +66,11 @@ public abstract class BaseApiException extends RuntimeException {
             }
             throwable = throwable.getCause();
         }
-        return getMessage(UNKNOWN_ERROR);
+        return getMessage(mErrorCode);
     }
 
-    protected boolean isKnownError(int code) {
-        return false;
-    }
+    protected abstract boolean isKnownError(int code);
 
     @NonNull
-    protected String getMessage(int code) {
-        return "Unknown";
-    }
+    protected abstract String getMessage(int code);
 }

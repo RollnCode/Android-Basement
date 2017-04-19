@@ -607,7 +607,7 @@ public abstract class BaseUtils {
 
     private static WeakReference<AlertDialog> sNoInternetDialog;
 
-    protected static void showNoInternetInner(@Nullable final Context context, @DrawableRes int icon, @StringRes int title, @StringRes int positiveBtn) {
+    protected static void showNoInternet(@Nullable final Context context, @DrawableRes int icon, @StringRes int title, @StringRes int positiveBtn) {
         if (context == null) {
             return;
 
@@ -711,7 +711,7 @@ public abstract class BaseUtils {
             } catch (Throwable ignore) {
             }
         }
-        return TextUtils.isEmpty(code) ? null : code.toUpperCase();
+        return TextUtils.isEmpty(code) ? null : code.toUpperCase(Locale.ENGLISH);
     }
 
     @Nullable

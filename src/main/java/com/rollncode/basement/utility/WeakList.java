@@ -21,7 +21,7 @@ public final class WeakList<DATA> {
 
     public synchronized void add(@Nullable DATA data) {
         if (data != null) {
-            mList.add(new WeakReference<DATA>(data));
+            mList.add(new WeakReference<>(data));
         }
     }
 
