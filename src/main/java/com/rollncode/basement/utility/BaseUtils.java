@@ -1005,6 +1005,21 @@ public abstract class BaseUtils {
         return event;
     }
 
+    public static boolean contains(@Nullable CharSequence sequence, @NonNull char... chars) {
+        if (!TextUtils.isEmpty(sequence)) {
+            char charAt;
+            for (int i = 0, length = sequence.length(); i < length; i++) {
+                charAt = sequence.charAt(i);
+                for (char c : chars) {
+                    if (charAt == c) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private static final class RefreshingRunnable implements Runnable {
 
         private static final SynchronizedPool<RefreshingRunnable> POOL = new SynchronizedPool<>(4);
