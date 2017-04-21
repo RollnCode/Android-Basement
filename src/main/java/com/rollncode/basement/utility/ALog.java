@@ -85,7 +85,7 @@ public class ALog implements Log {
 
     @NonNull
     private StringBuilder toString(@NonNull StringBuilder sb, @NonNull Throwable e, boolean fullStack) {
-        e.printStackTrace();//TODO: can be removed in far far future
+        e.printStackTrace();
 
         if (!BaseUtils.isEmpty(e.getMessage())) {
             sb.append(e.getMessage()).append(SharedStrings.NEW_LINE_C);
