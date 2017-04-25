@@ -15,6 +15,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
@@ -35,6 +36,7 @@ import android.support.annotation.CheckResult;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
@@ -75,6 +77,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -82,9 +86,11 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DateFormat;
@@ -414,7 +420,10 @@ public abstract class BaseUtils {
     }
 
     @NonNull
-    public static String toString(@NonNull InputStream stream, boolean closeStream) throws Exception {
+    public static String toString(@Nullable InputStream stream, boolean closeStream) throws Exception {
+        if (stream == null) {
+            return "";
+        }
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new InputStreamReader(stream));
@@ -643,6 +652,21 @@ public abstract class BaseUtils {
         sNoInternetDialog = new WeakReference<>(dialog);
     }
 
+    public static boolean openAppAtGooglePlay(@NonNull Context context, @NonNull String packageName) {
+        final Intent intent = new Intent(Intent.ACTION_VIEW)
+                .setData(Uri.parse(String.format(Locale.ENGLISH, "market://details?id=%1$s", packageName)));
+
+        if (intent.resolveActivity(context.getPackageManager()) == null) {
+            return false;
+        }
+        context.startActivity(intent);
+        return true;
+    }
+
+    public static boolean isNull(@Nullable String string) {
+        return string == null || string.length() == 0 || SharedStrings.NULL.equals(string);
+    }
+
     @NonNull
     public static CharSequence getAllNonNull(@NonNull StringBuilder sb, @NonNull String... strings) {
         clear(sb);
@@ -657,6 +681,16 @@ public abstract class BaseUtils {
             sb.delete(length - 1, length);
         }
         return sb;
+    }
+
+    /**
+     * Set the view's width and height to half of the least screen size
+     */
+    @MainThread
+    public static void setViewSizeHalfScreen(@NonNull View view, @NonNull Point screenSize) {
+        final ViewGroup.LayoutParams params = view.getLayoutParams();
+        params.width = params.height = Math.min(screenSize.x, screenSize.y) / 2;
+        view.requestLayout();
     }
 
 //    public static void setPaddingTopLikeStatusBar(@NonNull View v) {
@@ -1020,6 +1054,28 @@ public abstract class BaseUtils {
         return false;
     }
 
+    @WorkerThread
+    public static void copy(@NonNull File src, @NonNull File dst) throws IOException {
+        InputStream is = null;
+        OutputStream os = null;
+
+        try {
+            is = new FileInputStream(src);
+            os = new FileOutputStream(dst, false);
+
+            final byte[] bytes = new byte[1024];
+            int length;
+
+            while ((length = is.read(bytes)) > 0) {
+                os.write(bytes, 0, length);
+            }
+
+        } finally {
+            closeSilently(is);
+            closeSilently(os);
+        }
+    }
+
     private static final class RefreshingRunnable implements Runnable {
 
         private static final SynchronizedPool<RefreshingRunnable> POOL = new SynchronizedPool<>(4);
@@ -1223,5 +1279,53 @@ public abstract class BaseUtils {
         }
         context.startActivity(intent);
         return true;
+    }
+
+    @WorkerThread
+    @Nullable
+    private static String getVersionName(@NonNull String packageName) {//TODO: find a way
+        String versionName = null;
+        try {
+            final String spec = "https://play.google.com/store/apps/details?id=" + packageName + "&hl=en";
+            final URL url = new URL(spec);
+            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            {
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0");
+                connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+                connection.setRequestProperty("Content-Type", "text/html;charset=utf-8");
+                connection.setRequestProperty("Accept-Encoding", "gzip, deflate, br");
+                connection.setRequestProperty("Cookie", "NID=101=vHAIbr2xf6nEGeF_Bu7ntbOMIUKrQG5vULP6OW9dEaFMZusDR0g6RCo3EgCxYFrvx5U2ENFJ6srpz0bxN0Qpgz3s-ifplowRacLZdIl3Uc6LuvqYRFKZAYYQM16HHN-Pqahu-F-jijoipaqxjszBymltx1EJqOsn64sPKTdR6KVmv0iNEgXfRMMlQ-g1LEhrkGfrFP3XIj4aQt6Sj9HgPPCYunM69SkcyTXq_VX6-T8rUHhslwl8TiJN28qCNKyDY8tB3-iEV_VxAHIha7-YwpJ7mEHHewyja9S-w_LqiPkj; enabledapps.uploader=0; SID=mgQxwZcVEXRUnNITSgvjQYoZc4HmJOA16SC4pJudQVwGF8qwqcxclWWrznujGa1sJmJeLw.; HSID=AZ6JmYXwz9EKzl8MR; SSID=AJkGNwUslGbPvsLAL; APISID=numpNY63hNZbnj7u/AxWykKJWM4JGSdjQj; SAPISID=TX_bXXVhYphZWUV_/Aw9FOERlkwEmYJuiN; GMAIL_RTT=67; S=billing-ui-v3=_CnTXKipwBeZTVh6V4rzX5zg1aLIul97:billing-ui-v3-efe=_CnTXKipwBeZTVh6V4rzX5zg1aLIul97:analytics-realtime-frontend=XWNNsOTGLIKMsFoh5NXmHQ:maestro=bv6Hl2l8hMHenQfiKeggEz1vJH91545F; PLAY_ACTIVE_ACCOUNT=ICrt_XL61NBE_S0rhk8RpG0k65e0XwQVdDlvB6kxiQ8=tregub.artem@gmail.com; PLAY_PREFS=CvsICLGCv5jaEhLxCAoCVUEQ4NWdp7orGrIIEhMVGPEBrALhA_wEjAXjBeUF6AXXBpCVgQaRlYEGkpWBBpWVgQaXlYEGpJWBBriVgQa8lYEGwJWBBsGVgQbElYEGxZWBBsiVgQbJlYEGzJWBBs6VgQbQlYEG1JWBBtmVgQbflYEG45WBBuWVgQbylYEG-JWBBvuVgQb8lYEGgpaBBoSWgQaIloEGjJaBBo-WgQaQloEGoZaBBqKWgQajloEGpJaBBu6XgQbvl4EGgZiBBoKYgQaFmIEGiZiBBr6YgQaGm4EGq5uBBq2bgQbIm4EGypuBBsubgQbVm4EG8JuBBrydgQbdnYEG552BBpCegQbiooEG86KBBoujgQaapIEG66WBBsamgQbPp4EGo6iBBtWpgQa8rIEG1q-BBoeygQaJsoEG1rKBBsmzgQaytIEG1rmBBuu6gQaKvIEGjsCBBqLAgQbAwIEG8sCBBoTBgQatwoEGssKBBtbCgQbtw4EGjMWBBvjHgQbuyYEGqsqBBuvKgQbYzIEG3MyBBuTMgQbdzYEGhs6BBqHPgQbE0oEGldWBBt_XgQba2IEGk9mBBszZgQbU24EG8tuBBtjkgQaX5YEGuOiBBs_rgQbc64EGsOyBBvHtgQbF9IEG1_WBBrr7gQbA_4EGxv-BBsf_gQbJ_4EGyv-BBtWDggbIhIIG3oWCBrmGggbqhoIGpoeCBqeHggazh4IG7IeCBu2HggbJjYIG642CBvuNggaJjoIGlI6CBpiOggbPkIIG7JeCBvaXggaVmIIGvZmCBpmaggbBmoIGx5qCBsqaggbamoIG35qCBveaggadm4IG1J2CBuOdggadnoIGzp6CBtWegga6oIIGu6CCBsqhggb2ooIGkqWCBqulggbNpYIG8qeCBp6ogga0qIIGgbSCBoO0ggaGtIIG5rWCBq22ggaxu4IG8b6CBo2_ggaPv4IGpL-CBqW_ggbqwIIG9MKCBvbCggb6woIGg8OCBovDggaPw4IGkcOCBqLDggazw4IGw8OCBtPDggbVw4IG48OCBvTDggb3w4IG_MOCBv3DggaDxIIGvsWCBrDGggabyYIG58mCBo7LggaRy4IG1cuCBt3Lggbfy4IGidCCBovQggbe0IIGuNKCBtrTggb-1IIG_NWCBorWggaV2IIGm9iCBoDaggaE2oIGjNqCBo_aggab2oIGrduCBq7bggbF24IG1NuCBurbggbu24IG-9uCBpfcgga13IIGid6CBrneggaY34IG5N-CBq7gggak4YIGq-GCBsLhggbD4YIGxuGCBsjhggaF6IIGh-mCBpzpggae6YIGh-qCBsHqggbc6oIGg-uCBoXrggab64IGqeyCBu_sggaX7YIGoe2CBoDuggae7oIGn-6CBsrvggaN8IIGofCCBqDxgga48oIGufKCBrzyggbO8oIG5fKCBpb5ggal-YIGKNfJp526KzokYTFlMzU4ODYtYTc3OS00YTI2LTkzYjEtNzliOWZiOGJiYTU0QAFIAA:S:ANO1ljKgqNxsPvJttw");
+                connection.setRequestProperty("Referer", "http://www.google.com");
+                connection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+                connection.setRequestProperty("Upgrade-Insecure-Requests", "1");
+                connection.setRequestProperty("Connection", "keep-alive");
+                connection.setRequestProperty("Host", "play.google.com");
+                connection.setInstanceFollowRedirects(true);
+            }
+            connection.connect();
+
+            LOG.toLog("\n\n" + spec);
+            LOG.toLog("getContentType:\t" + connection.getContentType());
+            LOG.toLog("getResponseCode:\t" + connection.getResponseCode());
+            LOG.toLog("getContentLength:\t" + connection.getContentLength());
+            LOG.toLog("getContentEncoding:\t" + connection.getContentEncoding());
+
+            if (connection.getContentLength() > 0) {
+                final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String string;
+
+                while ((string = reader.readLine()) != null) {
+                    if (string.contains("softwareVersion")) {
+                        versionName = string.substring(string.indexOf(">"), string.lastIndexOf("<"));
+                        break;
+                    }
+                }
+                closeSilently(reader);
+            }
+
+        } catch (Exception e) {
+            LOG.toLog(e);
+        }
+        return versionName;
     }
 }

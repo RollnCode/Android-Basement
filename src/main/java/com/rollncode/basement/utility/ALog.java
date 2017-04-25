@@ -4,8 +4,12 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AbsListView.OnScrollListener;
@@ -14,7 +18,14 @@ import com.rollncode.basement.BuildConfig;
 import com.rollncode.basement.interfaces.Log;
 import com.rollncode.basement.interfaces.SharedStrings;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @SuppressWarnings("unused")
@@ -29,6 +40,7 @@ public class ALog implements Log {
     //BASE
     private final String mLogTag;
     private boolean mShowLogs;
+    private FileLog mFileLog;
 
     @SuppressWarnings("WeakerAccess")
     public ALog(@NonNull String logTag) {
@@ -42,11 +54,34 @@ public class ALog implements Log {
         return this;
     }
 
+    public void setLogFile(@Nullable File file) {
+        if (file == null) {
+            if (mFileLog != null) {
+                mFileLog.getLooper().quit();
+                mFileLog = null;
+            }
+
+        } else if (mFileLog == null) {
+            mFileLog = new FileLog(file);
+        }
+    }
+
+    @Nullable
+    public File getLogFile() {
+        return mFileLog == null ? null : mFileLog.mFile;
+    }
+
+    public void copyLogFile(@NonNull File file, @Nullable Runnable callback) {
+        if (mFileLog != null) {
+            mFileLog.copy(file, callback);
+        }
+    }
+
     @Override
     public void toLog(@Nullable String s) {
         if (mShowLogs) {
             if (s == null) {
-                android.util.Log.d(mLogTag, SharedStrings.NULL);
+                toLogInner(SharedStrings.NULL);
 
             } else {
                 final int length = s.length();
@@ -63,9 +98,16 @@ public class ALog implements Log {
                     toLog("\te\t-\t-\t-\t-\tpart end  \t-\t-\t-\t-\te");
 
                 } else {
-                    android.util.Log.d(mLogTag, s);
+                    toLogInner(s);
                 }
             }
+        }
+    }
+
+    private void toLogInner(@NonNull String s) {
+        android.util.Log.d(mLogTag, s);
+        if (mFileLog != null) {
+            mFileLog.write(s);
         }
     }
 
@@ -303,5 +345,107 @@ public class ALog implements Log {
     public <T> T throughLog(T value) {
         toLog(value);
         return value;
+    }
+
+    private static final class FileLog extends Handler {
+
+        private static final SimpleDateFormat SDF = new SimpleDateFormat("\nyyyyMMdd[HH:mm:ss:SSS]\t", Locale.ENGLISH);
+
+        private static final int WHAT_TO_FILE = 0xA;
+        private static final int WHAT_COPY_EXTERNAL = 0xB;
+
+        private final File mFile;
+        private final Date mDate;
+
+        FileLog(@NonNull File file) {
+            super(BaseUtils.newLooper("fileLog", Thread.MIN_PRIORITY));
+
+            mFile = file;
+            mDate = new Date();
+
+            if (mFile.exists() && mFile.length() > 0) {
+                write("Continue....");
+
+            } else {
+                write("Initialization....");
+            }
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            try {
+                if (!mFile.exists() && !mFile.createNewFile()) {
+                    throw new IllegalStateException("Can't create file");
+                }
+
+            } catch (IOException e) {
+                LOG.toLog(e);
+                throw new IllegalStateException(e);
+            }
+            switch (msg.what) {
+                case WHAT_TO_FILE: {
+                    mDate.setTime(System.currentTimeMillis());
+                    FileWriter writer = null;
+                    try {
+                        writer = new FileWriter(mFile, true);
+                        writer.append(SDF.format(mDate));
+                        writer.append(msg.obj.toString());
+
+                    } catch (Exception e) {
+                        LOG.toLog(e);
+
+                    } finally {
+                        BaseUtils.closeSilently(writer);
+                    }
+                }
+                case WHAT_COPY_EXTERNAL:
+                    final Pair pair = (Pair) msg.obj;
+                    final File external = (File) pair.first;
+                    if (external.exists()) {
+                        try {
+                            BaseUtils.copy(mFile, external);
+
+                        } catch (IOException e) {
+                            LOG.toLog(e);
+
+                        } finally {
+                            final WeakReference reference = (WeakReference) pair.second;
+                            final Object object = reference.get();
+
+                            if (object instanceof Runnable) {
+                                final Runnable runnable = (Runnable) object;
+                                final Looper looper = Looper.getMainLooper();
+                                if (looper == null) {
+                                    runnable.run();
+
+                                } else {
+                                    new Handler(looper).post(runnable);
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        void write(@NonNull String string) {
+            final Message msg = super.obtainMessage();
+            msg.what = WHAT_TO_FILE;
+            msg.obj = string;
+
+            super.sendMessage(msg);
+        }
+
+        void copy(@NonNull File file, @Nullable Runnable callback) {
+            final Message msg = super.obtainMessage();
+            msg.what = WHAT_COPY_EXTERNAL;
+            //noinspection unchecked
+            msg.obj = new Pair(file, new WeakReference(callback));
+
+            super.sendMessage(msg);
+        }
     }
 }

@@ -194,7 +194,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     };
 
     @CallSuper
-    private void onInternetConnectionChanged(boolean internetAvailable) {
+    protected void onInternetConnectionChanged(boolean internetAvailable) {
         final Fragment fragment = getFragmentFromContainer();
         if (fragment instanceof BaseFragment) {
             ((BaseFragment) fragment).onInternetConnectionChanged(internetAvailable);
