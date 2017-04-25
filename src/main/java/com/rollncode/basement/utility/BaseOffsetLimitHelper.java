@@ -53,6 +53,7 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
         return queryAll(true);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public final boolean queryAll(boolean force) {
         if (!mWaitForResponse
                 && (force || mOffset > 0)
