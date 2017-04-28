@@ -103,6 +103,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -950,11 +951,13 @@ public abstract class BaseUtils {
     public static int getAge(@NonNull Calendar calendar, long birthday) {
         calendar.setTimeInMillis(System.currentTimeMillis());
         final int nowYear = calendar.get(Calendar.YEAR);
+        final int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
 
         calendar.setTimeInMillis(birthday);
         final int userYear = calendar.get(Calendar.YEAR);
+        final int userDayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
 
-        return nowYear - userYear;
+        return nowYear - userYear - (dayOfYear < userDayOfYear ? 1 : 0);
     }
 
     public static void animateAlpha(float alpha, @NonNull View... views) {
@@ -1017,26 +1020,40 @@ public abstract class BaseUtils {
     }
 
     @NonNull
-    public static <E extends AnswersEvent, M extends JsonEntity> E append(@NonNull E event, @Nullable M model) {
-        if (model != null) {
+    public static <E extends AnswersEvent, M extends JsonEntity> E append(@NonNull E e, @Nullable M m) {
+        if (m != null) {
             try {
-                final JSONObject object = model.toJson();
-                String key;
-                Object value;
-
-                for (Iterator<String> iterator = object.keys(); iterator.hasNext(); ) {
-                    key = iterator.next();
-                    value = object.get(key);
-
-                    if (value instanceof String) {
-                        event.putCustomAttribute(key, value.toString());
-                    }
-                }
+                return append(e, m.toJson());
 
             } catch (JSONException ignore) {
             }
         }
-        return event;
+        return e;
+    }
+
+    @NonNull
+    public static <E extends AnswersEvent> E append(@NonNull E e, @NonNull JSONObject o) throws JSONException {
+        String key;
+        Object value;
+
+        for (Iterator<String> iterator = o.keys(); iterator.hasNext(); ) {
+            key = iterator.next();
+            value = o.get(key);
+
+            if (value instanceof String) {
+                e.putCustomAttribute(key, value.toString());
+            }
+        }
+        return e;
+    }
+
+    public static <E extends AnswersEvent> E append(@NonNull E e, @Nullable Map<String, String> map) {
+        if (map != null && map.size() > 0) {
+            for (Entry<String, String> entry : map.entrySet()) {
+                e.putCustomAttribute(entry.getKey(), entry.getValue());
+            }
+        }
+        return e;
     }
 
     public static boolean contains(@Nullable CharSequence sequence, @NonNull char... chars) {
@@ -1086,6 +1103,17 @@ public abstract class BaseUtils {
             }
         }
         return defaultValue;
+    }
+
+    public static void deleteOnExit(@NonNull Iterable<String> files) {
+        for (String path : files) {
+            try {
+                //noinspection ResultOfMethodCallIgnored
+                new File(path).delete();
+
+            } catch (Exception ignore) {
+            }
+        }
     }
 
     private static final class RefreshingRunnable implements Runnable {
