@@ -69,6 +69,10 @@ abstract class AsyncNetworkRequest<RESULT> extends AsyncRequest<RESULT> {
         BaseUtils.waitUntilTimeout(mStartTime, timeout);
     }
 
+    protected final long getStartTime() {
+        return mStartTime;
+    }
+
     @SuppressWarnings({"WeakerAccess", "UnusedParameters"})
     protected void postLoad(boolean errorOccurred) {
     }

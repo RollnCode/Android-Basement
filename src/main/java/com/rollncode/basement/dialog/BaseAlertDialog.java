@@ -32,4 +32,7 @@ public abstract class BaseAlertDialog {
     protected final Context getContext() {
         return mDialog.getContext();
     }
+
+    @Override
+    public abstract String toString();
 }

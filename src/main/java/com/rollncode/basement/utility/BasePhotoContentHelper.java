@@ -135,7 +135,7 @@ public abstract class BasePhotoContentHelper {
     @CheckResult
     public final File createTempFile() throws IOException {
         final File file = new File(mRoot, generateTempFileName());
-        file.deleteOnExit();
+        deleteOnExit(file);
 
         if (file.createNewFile()) {
             return file;
@@ -151,5 +151,9 @@ public abstract class BasePhotoContentHelper {
                     , Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
         return uri;
+    }
+
+    protected void deleteOnExit(@NonNull File file) {
+        file.deleteOnExit();
     }
 }
