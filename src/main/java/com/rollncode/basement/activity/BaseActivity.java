@@ -182,7 +182,6 @@ public abstract class BaseActivity extends AppCompatActivity {
                     BaseActivity.this.onGlobalBroadcastReceive(context, intent);
                     break;
             }
-
         }
     };
 

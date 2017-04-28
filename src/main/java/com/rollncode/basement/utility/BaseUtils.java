@@ -1076,6 +1076,18 @@ public abstract class BaseUtils {
         }
     }
 
+    public static int integerValueOf(@Nullable String s, int defaultValue) {
+        if (s != null && s.length() > 0) {
+            try {
+                return Integer.valueOf(s);
+
+            } catch (Exception e) {
+                LOG.toLog(e);
+            }
+        }
+        return defaultValue;
+    }
+
     private static final class RefreshingRunnable implements Runnable {
 
         private static final SynchronizedPool<RefreshingRunnable> POOL = new SynchronizedPool<>(4);
