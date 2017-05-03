@@ -24,6 +24,7 @@ import com.rollncode.basement.utility.BaseUtils;
 import java.lang.ref.WeakReference;
 
 import io.fabric.sdk.android.Fabric;
+import io.fabric.sdk.android.Kit;
 
 /**
  * @author Tregub Artem tregub.artem@gmail.com
@@ -45,13 +46,18 @@ public abstract class BaseApp extends Application
     public void onCreate() {
         super.onCreate();
         {
-            Fabric.with(this, new Crashlytics(), new Answers());
+            Fabric.with(this, getCrashlyticsKits());
         }
         mCreateDestroy = new SparseArray<>();
         mResumePause = new SparseArray<>();
         mHandler = new WorkerHandler(this);
 
         super.registerActivityLifecycleCallbacks(this);
+    }
+
+    @NonNull
+    protected Kit[] getCrashlyticsKits() {
+        return new Kit[]{new Crashlytics(), new Answers()};
     }
 
     protected final void restrictMode() {

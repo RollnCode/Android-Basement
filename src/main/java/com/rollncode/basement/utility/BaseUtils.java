@@ -90,7 +90,6 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DateFormat;
@@ -1323,45 +1322,27 @@ public abstract class BaseUtils {
 
     @WorkerThread
     @Nullable
-    private static String getVersionName(@NonNull String packageName) {//TODO: find a way
+    public static String getVersionName(@NonNull String packageName) {
         String versionName = null;
         try {
             final String spec = "https://play.google.com/store/apps/details?id=" + packageName + "&hl=en";
-            final URL url = new URL(spec);
-            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            {
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0");
-                connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-                connection.setRequestProperty("Content-Type", "text/html;charset=utf-8");
-                connection.setRequestProperty("Accept-Encoding", "gzip, deflate, br");
-                connection.setRequestProperty("Cookie", "NID=101=vHAIbr2xf6nEGeF_Bu7ntbOMIUKrQG5vULP6OW9dEaFMZusDR0g6RCo3EgCxYFrvx5U2ENFJ6srpz0bxN0Qpgz3s-ifplowRacLZdIl3Uc6LuvqYRFKZAYYQM16HHN-Pqahu-F-jijoipaqxjszBymltx1EJqOsn64sPKTdR6KVmv0iNEgXfRMMlQ-g1LEhrkGfrFP3XIj4aQt6Sj9HgPPCYunM69SkcyTXq_VX6-T8rUHhslwl8TiJN28qCNKyDY8tB3-iEV_VxAHIha7-YwpJ7mEHHewyja9S-w_LqiPkj; enabledapps.uploader=0; SID=mgQxwZcVEXRUnNITSgvjQYoZc4HmJOA16SC4pJudQVwGF8qwqcxclWWrznujGa1sJmJeLw.; HSID=AZ6JmYXwz9EKzl8MR; SSID=AJkGNwUslGbPvsLAL; APISID=numpNY63hNZbnj7u/AxWykKJWM4JGSdjQj; SAPISID=TX_bXXVhYphZWUV_/Aw9FOERlkwEmYJuiN; GMAIL_RTT=67; S=billing-ui-v3=_CnTXKipwBeZTVh6V4rzX5zg1aLIul97:billing-ui-v3-efe=_CnTXKipwBeZTVh6V4rzX5zg1aLIul97:analytics-realtime-frontend=XWNNsOTGLIKMsFoh5NXmHQ:maestro=bv6Hl2l8hMHenQfiKeggEz1vJH91545F; PLAY_ACTIVE_ACCOUNT=ICrt_XL61NBE_S0rhk8RpG0k65e0XwQVdDlvB6kxiQ8=tregub.artem@gmail.com; PLAY_PREFS=CvsICLGCv5jaEhLxCAoCVUEQ4NWdp7orGrIIEhMVGPEBrALhA_wEjAXjBeUF6AXXBpCVgQaRlYEGkpWBBpWVgQaXlYEGpJWBBriVgQa8lYEGwJWBBsGVgQbElYEGxZWBBsiVgQbJlYEGzJWBBs6VgQbQlYEG1JWBBtmVgQbflYEG45WBBuWVgQbylYEG-JWBBvuVgQb8lYEGgpaBBoSWgQaIloEGjJaBBo-WgQaQloEGoZaBBqKWgQajloEGpJaBBu6XgQbvl4EGgZiBBoKYgQaFmIEGiZiBBr6YgQaGm4EGq5uBBq2bgQbIm4EGypuBBsubgQbVm4EG8JuBBrydgQbdnYEG552BBpCegQbiooEG86KBBoujgQaapIEG66WBBsamgQbPp4EGo6iBBtWpgQa8rIEG1q-BBoeygQaJsoEG1rKBBsmzgQaytIEG1rmBBuu6gQaKvIEGjsCBBqLAgQbAwIEG8sCBBoTBgQatwoEGssKBBtbCgQbtw4EGjMWBBvjHgQbuyYEGqsqBBuvKgQbYzIEG3MyBBuTMgQbdzYEGhs6BBqHPgQbE0oEGldWBBt_XgQba2IEGk9mBBszZgQbU24EG8tuBBtjkgQaX5YEGuOiBBs_rgQbc64EGsOyBBvHtgQbF9IEG1_WBBrr7gQbA_4EGxv-BBsf_gQbJ_4EGyv-BBtWDggbIhIIG3oWCBrmGggbqhoIGpoeCBqeHggazh4IG7IeCBu2HggbJjYIG642CBvuNggaJjoIGlI6CBpiOggbPkIIG7JeCBvaXggaVmIIGvZmCBpmaggbBmoIGx5qCBsqaggbamoIG35qCBveaggadm4IG1J2CBuOdggadnoIGzp6CBtWegga6oIIGu6CCBsqhggb2ooIGkqWCBqulggbNpYIG8qeCBp6ogga0qIIGgbSCBoO0ggaGtIIG5rWCBq22ggaxu4IG8b6CBo2_ggaPv4IGpL-CBqW_ggbqwIIG9MKCBvbCggb6woIGg8OCBovDggaPw4IGkcOCBqLDggazw4IGw8OCBtPDggbVw4IG48OCBvTDggb3w4IG_MOCBv3DggaDxIIGvsWCBrDGggabyYIG58mCBo7LggaRy4IG1cuCBt3Lggbfy4IGidCCBovQggbe0IIGuNKCBtrTggb-1IIG_NWCBorWggaV2IIGm9iCBoDaggaE2oIGjNqCBo_aggab2oIGrduCBq7bggbF24IG1NuCBurbggbu24IG-9uCBpfcgga13IIGid6CBrneggaY34IG5N-CBq7gggak4YIGq-GCBsLhggbD4YIGxuGCBsjhggaF6IIGh-mCBpzpggae6YIGh-qCBsHqggbc6oIGg-uCBoXrggab64IGqeyCBu_sggaX7YIGoe2CBoDuggae7oIGn-6CBsrvggaN8IIGofCCBqDxgga48oIGufKCBrzyggbO8oIG5fKCBpb5ggal-YIGKNfJp526KzokYTFlMzU4ODYtYTc3OS00YTI2LTkzYjEtNzliOWZiOGJiYTU0QAFIAA:S:ANO1ljKgqNxsPvJttw");
-                connection.setRequestProperty("Referer", "http://www.google.com");
-                connection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-                connection.setRequestProperty("Upgrade-Insecure-Requests", "1");
-                connection.setRequestProperty("Connection", "keep-alive");
-                connection.setRequestProperty("Host", "play.google.com");
-                connection.setInstanceFollowRedirects(true);
-            }
+            final URLConnection connection = new URL(spec).openConnection();
             connection.connect();
 
-            LOG.toLog("\n\n" + spec);
-            LOG.toLog("getContentType:\t" + connection.getContentType());
-            LOG.toLog("getResponseCode:\t" + connection.getResponseCode());
-            LOG.toLog("getContentLength:\t" + connection.getContentLength());
-            LOG.toLog("getContentEncoding:\t" + connection.getContentEncoding());
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String string;
+            int indexOf;
 
-            if (connection.getContentLength() > 0) {
-                final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String string;
-
-                while ((string = reader.readLine()) != null) {
-                    if (string.contains("softwareVersion")) {
-                        versionName = string.substring(string.indexOf(">"), string.lastIndexOf("<"));
-                        break;
-                    }
+            while ((string = reader.readLine()) != null) {
+                indexOf = string.lastIndexOf("softwareVersion");
+                if (indexOf > -1) {
+                    string = string.substring(indexOf);
+                    string = string.substring(string.indexOf(">") + 1, string.indexOf("<"));
+                    versionName = string.trim();
+                    break;
                 }
-                closeSilently(reader);
             }
+            closeSilently(reader);
 
         } catch (Exception e) {
             LOG.toLog(e);
