@@ -60,7 +60,7 @@ public abstract class BaseApp extends Application
         return new Kit[]{new Crashlytics(), new Answers()};
     }
 
-    protected final void restrictMode() {
+    protected final void strictMode() {
         final ThreadPolicy.Builder threadPolicy = new Builder()
                 .penaltyDeath()
                 .penaltyLog()
