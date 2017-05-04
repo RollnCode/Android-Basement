@@ -41,6 +41,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.annotation.WorkerThread;
+import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pools.SynchronizedPool;
@@ -935,8 +936,20 @@ public abstract class BaseUtils {
 
     @NonNull
     public static Bitmap toBitmap(@NonNull Context context, @DrawableRes int drawableRes) {
-        final Drawable drawable = ContextCompat.getDrawable(context, drawableRes);
-        if (drawable instanceof BitmapDrawable) {
+        Drawable drawable = null;
+        try {
+            drawable = ContextCompat.getDrawable(context, drawableRes);
+
+        } catch (Exception e) {
+            LOG.toLog(e);
+        }
+        if (drawable == null) {
+            drawable = VectorDrawableCompat.create(context.getResources(), drawableRes, null);
+        }
+        if (drawable == null) {
+            throw new IllegalStateException();
+
+        } else if (drawable instanceof BitmapDrawable) {
             return ((BitmapDrawable) drawable).getBitmap();
         }
         final Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Config.ARGB_8888);

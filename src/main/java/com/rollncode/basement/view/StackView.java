@@ -8,6 +8,8 @@ import android.database.DataSetObserver;
 import android.graphics.PointF;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -30,6 +32,7 @@ import com.rollncode.basement.type.GestureDirection;
 import com.rollncode.basement.utility.ALog;
 import com.rollncode.basement.utility.ARandom;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +56,8 @@ public final class StackView extends FrameLayout {
     private View mRecycledChild;
 
     //VALUE's
+    private final InnerHandler mHandler;
+
     private final TimeInterpolator mInterpolator;
     private final float mScrollingCrossMin;
     private final int mAnimationDuration;
@@ -109,6 +114,8 @@ public final class StackView extends FrameLayout {
         mLastXY = new PointF();
 
         mRecycledChildren = new ArrayList<>();
+
+        mHandler = new InnerHandler(this);
     }
 
     public void setAdapter(@NonNull BaseAdapter adapter) {
@@ -119,7 +126,7 @@ public final class StackView extends FrameLayout {
         mAdapter.registerDataSetObserver(mDataSetObserver);
         mFrontPosition = 0;
 
-        super.post(mRunNotifyChanges);
+        mHandler.sendEmptyMessage(InnerHandler.WHAT_NOTIFY_CHANGES);
     }
 
     public void setOnScrollListener(@Nullable OnScrollListener listener) {
@@ -363,21 +370,22 @@ public final class StackView extends FrameLayout {
     private final AnimatorListenerAdapter mFrontOutListener = new AnimatorListenerAdapter() {
         @Override
         public void onAnimationEnd(Animator animation) {
-            post(mRunFrontOut);
+            mHandler.runFrontOut(true);
         }
     };
 
     private final AnimatorListenerAdapter mFrontInListener = new AnimatorListenerAdapter() {
         @Override
         public void onAnimationEnd(Animator animation) {
-            post(mRunFrontIn);
+            mHandler.runFrontOut(false);
         }
     };
 
     private final DataSetObserver mDataSetObserver = new DataSetObserver() {
         @Override
         public void onChanged() {
-            postDelayed(mRunOnChanged, mAnimationDuration);
+            mHandler.removeMessages(InnerHandler.WHAT_ON_CHANGED);
+            mHandler.sendEmptyMessageDelayed(InnerHandler.WHAT_ON_CHANGED, mAnimationDuration);
         }
 
         @Override
@@ -429,10 +437,10 @@ public final class StackView extends FrameLayout {
 
     private void addChildView(int index, int position, boolean animate) {
         final View view = getPreparedChildView(index, position, animate);
-        final ViewParent parent = view.getParent();
-        if (parent instanceof ViewGroup) {
-            ((ViewGroup) parent).removeView(view);
-        }
+//        final ViewParent parent = view.getParent();
+//        if (parent instanceof ViewGroup) {
+//            ((ViewGroup) parent).removeView(view);
+//        }
         super.addView(view, 0, mParams);
     }
 
@@ -442,6 +450,13 @@ public final class StackView extends FrameLayout {
         final View recycled = mRecycledChildren.size() > 0 ? mRecycledChildren.remove(0) : null;
         if (recycled != null) {
             recycled.animate().cancel();
+
+            final ViewParent parent = recycled.getParent();
+            if (parent instanceof ViewGroup) {//return another view if previous had parent
+                ((ViewGroup) parent).removeView(recycled);
+
+//                return getPreparedChildView(index, position, animate);
+            }
         }
         final View view = mAdapter.getView(position, recycled, this);
         {
@@ -511,60 +526,39 @@ public final class StackView extends FrameLayout {
     }
 
     private void setAnimationFalse() {
-        removeCallbacks(mRunAnimationStop);
-        postDelayed(mRunAnimationStop, mAnimationDuration);
+        mHandler.removeMessages(InnerHandler.WHAT_ANIMATION_STOP);
+        mHandler.sendEmptyMessageDelayed(InnerHandler.WHAT_ANIMATION_STOP, mAnimationDuration);
     }
 
-    private final Runnable mRunAnimationStop = new Runnable() {
-        @Override
-        public void run() {
-            mAnimation = false;
-            if (mScrollListener != null) {
-                mScrollListener.onScroll(null, mFrontPosition, getChildCount() * 2, mAdapter.getCount());
-            }
+    private void runOnChanged() {
+        if (mAnimation) {
+            mHandler.removeMessages(InnerHandler.WHAT_ON_CHANGED);
+            mHandler.sendEmptyMessageDelayed(InnerHandler.WHAT_ON_CHANGED, mAnimationDuration / 5);
+            return;
         }
-    };
+        mAnimation = true;
 
-    private final Runnable mRunNotifyChanges = new Runnable() {
-        @Override
-        public void run() {
+        if (mAdapter.getCount() < mFrontPosition) {
+            if (mStackViewCallback != null) {
+                mStackViewCallback.onFrontViewChanged(0, mFrontPosition, GestureDirection.NONE);
+            }
+            mFrontPosition = 0;
             removeAllViews();
-            mAdapter.notifyDataSetChanged();
         }
-    };
+        int position = mFrontPosition;
+        int index = 0;
 
-    private final Runnable mRunOnChanged = new Runnable() {
-        @Override
-        public void run() {
-            if (mAnimation) {
-                postDelayed(this, mAnimationDuration / 5);
-                return;
-            }
-            mAnimation = true;
-
-            if (mAdapter.getCount() < mFrontPosition) {
-                if (mStackViewCallback != null) {
-                    mStackViewCallback.onFrontViewChanged(0, mFrontPosition, GestureDirection.NONE);
-                }
-                mFrontPosition = 0;
-                removeAllViews();
-            }
-            int position = mFrontPosition;
-            int index = 0;
-
-            for (; position < mAdapter.getCount() && index < mVisibleCount; position++, index++) {
-                refreshChildView(index, position);
-            }
-            if (position < mAdapter.getCount() && mRecycledChildren.size() < 3) {
-                mRecycledChildren.add(getPreparedChildView(-1, position, false));
-            }
-            setAnimationFalse();
+        for (; position < mAdapter.getCount() && index < mVisibleCount; position++, index++) {
+            refreshChildView(index, position);
         }
-    };
+        if (position < mAdapter.getCount() && mRecycledChildren.size() < 3) {
+            mRecycledChildren.add(getPreparedChildView(-1, position, false));
+        }
+        setAnimationFalse();
+    }
 
-    private final Runnable mRunFrontOut = new Runnable() {
-        @Override
-        public void run() {
+    private void runFrontOut(boolean out) {
+        if (out) {
             removeView(mRecycledChild);
             mRecycledChild = null;
             reorderChildren();
@@ -577,12 +571,8 @@ public final class StackView extends FrameLayout {
                 addChildView(getChildCount(), backPosition, true);
             }
             setAnimationFalse();
-        }
-    };
 
-    private final Runnable mRunFrontIn = new Runnable() {
-        @Override
-        public void run() {
+        } else {
             mFrontPosition--;
             reorderChildren();
 
@@ -591,5 +581,64 @@ public final class StackView extends FrameLayout {
             }
             setAnimationFalse();
         }
-    };
+    }
+
+    private static final class InnerHandler extends Handler {
+
+        private static final int WHAT_ANIMATION_STOP = 0xA;
+        private static final int WHAT_NOTIFY_CHANGES = 0xB;
+        private static final int WHAT_ON_CHANGED = 0xC;
+        private static final int WHAT_RUN_FRONT_OUT = 0xD;
+
+        private final WeakReference<StackView> mView;
+
+        InnerHandler(@NonNull StackView view) {
+            mView = new WeakReference<>(view);
+        }
+
+        void runFrontOut(boolean out) {
+            final Message msg = super.obtainMessage();
+            msg.what = WHAT_RUN_FRONT_OUT;
+            msg.obj = out;
+
+            super.sendMessage(msg);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            final StackView v = mView.get();
+            if (v == null) {
+                return;
+            }
+            switch (msg.what) {
+                case WHAT_ANIMATION_STOP: {
+                    v.mAnimation = false;
+                    if (v.mScrollListener != null) {
+                        v.mScrollListener.onScroll(null, v.mFrontPosition, v.getChildCount() * 2, v.mAdapter.getCount());
+                    }
+                }
+                break;
+
+                case WHAT_NOTIFY_CHANGES: {
+                    v.removeAllViews();
+                    v.mAdapter.notifyDataSetChanged();
+                }
+                break;
+
+                case WHAT_ON_CHANGED: {
+                    v.runOnChanged();
+                }
+                break;
+
+                case WHAT_RUN_FRONT_OUT: {
+                    v.runFrontOut((boolean) msg.obj);
+                }
+                break;
+
+                default:
+                    super.handleMessage(msg);
+                    break;
+            }
+        }
+    }
 }

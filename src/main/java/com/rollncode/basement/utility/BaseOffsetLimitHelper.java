@@ -34,6 +34,10 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
         mAttempts = attempts;
     }
 
+    public void setInitialOffset(int offset) {
+        mOffset = offset;
+    }
+
     @NonNull
     protected abstract LISTENER newListenerInstance();
 
@@ -95,15 +99,12 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
                 onScrollUp();
             }
 
+        } else if (firstVisibleItem < mOldFirstVisibleItem) {
+            onScrollDown();
+
         } else {
-            if (firstVisibleItem < mOldFirstVisibleItem) {
-                onScrollDown();
-
-            } else {
-                onScrollUp();
-            }
+            onScrollUp();
         }
-
         mOldTop = top;
         mOldFirstVisibleItem = firstVisibleItem;
 
@@ -111,10 +112,7 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
             return;
         }
 
-        if (mAttemptCount == mAttempts && firstVisibleItem == totalItemCount) {
-            lastItemThrown();
-
-        } else if (totalItemCount == 0 || firstVisibleItem + visibleItemCount == totalItemCount) {
+        if (totalItemCount == 0 || firstVisibleItem + visibleItemCount == totalItemCount) {
             if (!mErrorInResponse && mAttemptCount < mAttempts && executeRequest(mOffset, mLimit, mRequestListener)) {
                 mWaitForResponse = true;
                 setRefreshing(true);
@@ -122,6 +120,9 @@ public abstract class BaseOffsetLimitHelper<RESULT, LISTENER extends BaseAReques
 
         } else if (mErrorInResponse) {
             mErrorInResponse = false;
+        }
+        if (totalItemCount == 0 || firstVisibleItem >= totalItemCount) {
+            lastItemThrown();
         }
     }
 
